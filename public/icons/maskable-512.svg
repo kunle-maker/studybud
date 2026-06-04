@@ -1,0 +1,13 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Full bleed background (maskable icons need full bleed) -->
+  <rect width="512" height="512" fill="#0066f5"/>
+  <!-- Safe zone is inner 80% = 204-308 range, so content center 256±76 -->
+  <!-- Graduation cap (scaled down to sit inside safe zone) -->
+  <polygon points="256,172 360,212 256,252 152,212" fill="white"/>
+  <!-- Tassel pole -->
+  <rect x="357" y="212" width="8" height="64" rx="4" fill="white"/>
+  <!-- Tassel ball -->
+  <circle cx="361" cy="284" r="11" fill="white"/>
+  <!-- Diploma scroll -->
+  <path d="M208,252 Q256,292 304,252 L304,332 Q256,296 208,332 Z" fill="white" opacity="0.95"/>
+</svg>

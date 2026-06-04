@@ -1,0 +1,11 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="100" fill="#0066f5"/>
+  <!-- Graduation cap -->
+  <polygon points="256,154 394,214 256,272 118,214" fill="white"/>
+  <!-- Tassel pole -->
+  <rect x="390" y="214" width="10" height="80" rx="5" fill="white"/>
+  <!-- Tassel ball -->
+  <circle cx="395" cy="302" r="14" fill="white"/>
+  <!-- Diploma scroll -->
+  <path d="M192,272 Q256,320 320,272 L320,370 Q256,324 192,370 Z" fill="white" opacity="0.95"/>
+</svg>
