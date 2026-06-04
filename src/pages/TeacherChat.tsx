@@ -1,0 +1,159 @@
+import { useState, useRef, useEffect } from "react";
+import api from "@/lib/api";
+import LimitBanner from "@/components/LimitBanner";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export default function TeacherChat() {
+  const [messages,     setMessages]     = useState<Message[]>([]);
+  const [input,        setInput]        = useState("");
+  const [chatId,       setChatId]       = useState<string | null>(null);
+  const [loading,      setLoading]      = useState(false);
+  const [limitReached, setLimitReached] = useState(false);
+  const [error,        setError]        = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+    const question = input.trim();
+    setInput("");
+    setError(""); setLimitReached(false);
+    setMessages(prev => [...prev, { role: "user", content: question }]);
+    setLoading(true);
+    try {
+      const payload: any = { question };
+      if (chatId) payload.chatId = chatId;
+      const { data } = await api.post("/teacher/ask", payload);
+      setChatId(data.data.chatId);
+      setMessages(prev => [...prev, { role: "assistant", content: data.data.answer }]);
+    } catch (err: any) {
+      if (err?.response?.data?.limitReached) { setLimitReached(true); }
+      else { setError(err?.response?.data?.message || "Something went wrong."); }
+      setMessages(prev => prev.slice(0, -1));
+      setInput(question);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetChat = () => {
+    setMessages([]); setChatId(null); setError(""); setLimitReached(false);
+  };
+
+  return (
+    <div className="max-w-3xl flex flex-col h-[calc(100vh-8rem)]">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">AI Teacher</h1>
+          <p className="text-muted-foreground text-sm mt-1">Ask questions about any topic — it remembers the conversation.</p>
+        </div>
+        {chatId && (
+          <button
+            data-testid="btn-new-chat"
+            onClick={resetChat}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <i className="fa-solid fa-plus" />New chat
+          </button>
+        )}
+      </div>
+
+      {limitReached && <div className="mb-4"><LimitBanner feature="teacher questions" /></div>}
+
+      {/* Chat area */}
+      <div className="flex-1 bg-card border border-border rounded-2xl overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {messages.length === 0 && (
+            <div className="h-full flex flex-col items-center justify-center text-center py-12 text-muted-foreground">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                <i className="fa-solid fa-chalkboard-user text-primary text-xl" />
+              </div>
+              <p className="font-semibold text-foreground text-base">Your AI Teacher is ready</p>
+              <p className="text-sm mt-2 max-w-sm">Ask any study question — biology, history, physics, coding, you name it. I remember the whole conversation.</p>
+              <div className="flex flex-wrap gap-2 mt-6 justify-center">
+                {["Explain photosynthesis", "What is osmosis?", "How does DNA replication work?"].map(q => (
+                  <button key={q} onClick={() => setInput(q)}
+                    className="px-3 py-1.5 rounded-xl text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/70 border border-accent-foreground/10 transition-colors">
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {messages.map((msg, i) => (
+            <div key={i} data-testid={`message-${msg.role}-${i}`}
+              className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                msg.role === "user" ? "bg-primary text-white" : ""
+              }`}
+              style={msg.role === "assistant" ? { background: "rgba(167,139,250,0.2)", color: "rgb(196,181,253)" } : undefined}>
+                <i className={`fa-solid ${msg.role === "user" ? "fa-user" : "fa-chalkboard-user"} text-xs`} />
+              </div>
+              <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                msg.role === "user"
+                  ? "bg-primary text-white rounded-tr-sm whitespace-pre-wrap"
+                  : "bg-muted text-foreground rounded-tl-sm"
+              }`}>
+                {msg.role === "assistant"
+                  ? <MarkdownRenderer content={msg.content} />
+                  : msg.content}
+              </div>
+            </div>
+          ))}
+
+          {loading && (
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: "rgba(167,139,250,0.2)", color: "rgb(196,181,253)" }}>
+                <i className="fa-solid fa-chalkboard-user text-xs" />
+              </div>
+              <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            </div>
+          )}
+
+          {error && <p className="text-sm text-destructive flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation" />{error}</p>}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input */}
+        <div className="border-t border-border p-4">
+          <form onSubmit={sendMessage} className="flex gap-3">
+            <input
+              data-testid="input-question"
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask your question…"
+              disabled={loading}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+            />
+            <button
+              data-testid="btn-send"
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50 flex-shrink-0"
+              style={{ background: "hsl(217 91% 48%)" }}
+            >
+              <i className="fa-solid fa-paper-plane" />
+              <span className="hidden sm:inline">Send</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
