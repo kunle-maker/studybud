@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+
+    <title>StudyBud — AI Study Assistant</title>
+    <meta name="description" content="AI-powered study assistant: generate summaries, flashcards, quizzes, extract text from images, and chat with your AI teacher." />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Theme colour (matches brand blue; media query for dark mode) -->
+    <meta name="theme-color" content="#0066f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a1628" media="(prefers-color-scheme: dark)" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="StudyBud — AI Study Assistant" />
+    <meta property="og:description" content="Summaries, flashcards, quizzes, OCR & AI teacher — all in one app." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/opengraph.jpg" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="StudyBud — AI Study Assistant" />
+    <meta name="twitter:description" content="Summaries, flashcards, quizzes, OCR & AI teacher — all in one app." />
+    <meta name="twitter:image" content="/opengraph.jpg" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Apple PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="StudyBud" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+
+    <!-- MS Tiles -->
+    <meta name="msapplication-TileColor" content="#0066f5" />
+    <meta name="msapplication-TileImage" content="/icons/icon-192.svg" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui,sans-serif;text-align:center;padding:2rem;">
+        <div>
+          <h1 style="font-size:1.5rem;font-weight:700;color:#1a202c">StudyBud requires JavaScript</h1>
+          <p style="margin-top:.5rem;color:#6b7280">Please enable JavaScript to use the app.</p>
+        </div>
+      </div>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
