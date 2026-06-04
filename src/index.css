@@ -1,0 +1,243 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Glass backgrounds — rgba for transparency */
+  --color-background:         var(--glass-bg);
+  --color-foreground:         hsl(var(--foreground));
+  --color-border:             var(--glass-border);
+  --color-input:              var(--glass-input);
+  --color-ring:               hsl(var(--ring));
+
+  --color-card:               var(--glass-card);
+  --color-card-foreground:    hsl(var(--foreground));
+  --color-card-border:        var(--glass-border);
+
+  --color-popover:            var(--glass-card);
+  --color-popover-foreground: hsl(var(--foreground));
+  --color-popover-border:     var(--glass-border);
+
+  --color-primary:            hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border:     var(--primary-border);
+
+  --color-secondary:          var(--glass-muted);
+  --color-secondary-foreground: hsl(var(--foreground));
+  --color-secondary-border:   var(--glass-border);
+
+  --color-muted:              var(--glass-muted);
+  --color-muted-foreground:   hsl(var(--muted-foreground));
+  --color-muted-border:       var(--glass-border);
+
+  --color-accent:             var(--glass-accent);
+  --color-accent-foreground:  hsl(var(--foreground));
+  --color-accent-border:      var(--glass-border);
+
+  --color-destructive:            hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border:     var(--destructive-border);
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar:                      hsl(var(--sidebar));
+  --color-sidebar-foreground:           hsl(var(--sidebar-foreground));
+  --color-sidebar-border:               hsl(var(--sidebar-border));
+  --color-sidebar-primary:              hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground:   hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary-border:       var(--sidebar-primary-border);
+  --color-sidebar-accent:               hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground:    hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent-border:        var(--sidebar-accent-border);
+  --color-sidebar-ring:                 hsl(var(--sidebar-ring));
+
+  --font-sans:  var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono:  var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ─── Glass tokens (shared both themes) ──────────────── */
+:root {
+  /* Rgba glass layers */
+  --glass-bg:     rgba(255, 255, 255, 0.10);
+  --glass-card:   rgba(255, 255, 255, 0.14);
+  --glass-border: rgba(255, 255, 255, 0.22);
+  --glass-input:  rgba(255, 255, 255, 0.12);
+  --glass-muted:  rgba(255, 255, 255, 0.08);
+  --glass-accent: rgba(255, 255, 255, 0.13);
+
+  --button-outline: rgba(255, 255, 255, 0.20);
+  --badge-outline:  rgba(255, 255, 255, 0.08);
+  --opaque-button-border-intensity: 8;
+  --elevate-1: rgba(255, 255, 255, 0.05);
+  --elevate-2: rgba(255, 255, 255, 0.10);
+
+  /* Text — HSL so Tailwind /opacity modifiers work */
+  --foreground:       0 0% 100%;
+  --muted-foreground: 0 0% 68%;
+  --ring:             217 91% 60%;
+
+  /* Primary */
+  --primary:            217 91% 58%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Destructive */
+  --destructive:            358 73% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Sidebar stays dark in both modes */
+  --sidebar:                    222 40% 8%;
+  --sidebar-foreground:         0 0% 100%;
+  --sidebar-border:             222 40% 12%;
+  --sidebar-primary:            217 91% 60%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent:             222 29% 16%;
+  --sidebar-accent-foreground:  220 14% 94%;
+  --sidebar-ring:               217 91% 60%;
+
+  /* Charts */
+  --chart-1: 217 91% 60%;
+  --chart-2: 162 80% 45%;
+  --chart-3: 38  92% 55%;
+  --chart-4: 358 73% 60%;
+  --chart-5: 271 76% 65%;
+
+  --app-font-sans:  'Inter', -apple-system, sans-serif;
+  --app-font-serif: Georgia, serif;
+  --app-font-mono:  Menlo, monospace;
+  --radius: 0.625rem;
+
+  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.12);
+  --shadow-xs:  0px 1px 3px 0px rgba(0,0,0,0.18);
+  --shadow-sm:  0px 1px 3px 0px rgba(0,0,0,0.20), 0px 1px 2px -1px rgba(0,0,0,0.12);
+  --shadow:     0px 2px 6px 0px rgba(0,0,0,0.22), 0px 1px 3px -1px rgba(0,0,0,0.14);
+  --shadow-md:  0px 4px 12px 0px rgba(0,0,0,0.26), 0px 2px 4px -1px rgba(0,0,0,0.16);
+  --shadow-lg:  0px 8px 24px 0px rgba(0,0,0,0.30), 0px 4px 8px -1px rgba(0,0,0,0.18);
+  --shadow-xl:  0px 16px 40px 0px rgba(0,0,0,0.35), 0px 8px 16px -2px rgba(0,0,0,0.20);
+  --shadow-2xl: 0px 24px 60px 0px rgba(0,0,0,0.40);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  --primary-border:        hsl(from hsl(var(--primary))     h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border:    hsl(from hsl(var(--destructive))  h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-accent-border:  hsl(from hsl(var(--sidebar-accent))  h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+.dark {
+  --glass-bg:     rgba(10, 15, 40, 0.55);
+  --glass-card:   rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-input:  rgba(255, 255, 255, 0.07);
+  --glass-muted:  rgba(255, 255, 255, 0.05);
+  --glass-accent: rgba(255, 255, 255, 0.08);
+
+  --button-outline: rgba(255, 255, 255, 0.12);
+  --badge-outline:  rgba(255, 255, 255, 0.05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255, 255, 255, 0.03);
+  --elevate-2: rgba(255, 255, 255, 0.07);
+
+  --foreground:       0 0% 100%;
+  --muted-foreground: 0 0% 60%;
+
+  --primary:  217 91% 60%;
+  --chart-1:  217 91% 60%;
+  --chart-2:  162 80% 50%;
+  --chart-3:  38  92% 58%;
+  --chart-4:  358 73% 62%;
+  --chart-5:  271 76% 68%;
+}
+
+/* ─── Gradient page backgrounds ─────────────────────── */
+html {
+  background: linear-gradient(135deg, #0047cc 0%, #0066f5 45%, #5b21b6 100%) fixed;
+  min-height: 100%;
+}
+html.dark {
+  background: linear-gradient(135deg, #0a0f1e 0%, #0d1a3a 45%, #1a0a3e 100%) fixed;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply font-sans antialiased text-foreground;
+    background: transparent;
+  }
+  /* All cards get frosted glass blur */
+  .bg-card {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+}
+
+@layer utilities {
+  input[type="search"]::-webkit-search-cancel-button {
+    @apply hidden;
+  }
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+  .no-default-hover-elevate {}
+  .no-default-active-elevate {}
+  .toggle-elevate::before,
+  .toggle-elevate-2::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    z-index: -1;
+  }
+  .toggle-elevate.toggle-elevated::before {
+    background-color: var(--elevate-2);
+  }
+  .border.toggle-elevate::before { inset: -1px; }
+  .hover-elevate:not(.no-default-hover-elevate),
+  .active-elevate:not(.no-default-active-elevate),
+  .hover-elevate-2:not(.no-default-hover-elevate),
+  .active-elevate-2:not(.no-default-active-elevate) {
+    position: relative;
+    z-index: 0;
+  }
+  .hover-elevate:not(.no-default-hover-elevate)::after,
+  .active-elevate:not(.no-default-active-elevate)::after,
+  .hover-elevate-2:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:not(.no-default-active-elevate)::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    z-index: 999;
+  }
+  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-1);
+  }
+  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-2);
+  }
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after {
+    inset: -1px;
+  }
+}
