@@ -9,6 +9,7 @@ export interface User {
   profilePicture: string | null;
   authProvider?: string;
   createdAt?: string;
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {
