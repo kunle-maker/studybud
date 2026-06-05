@@ -33,7 +33,7 @@ export default function Profile() {
     setUploadingAvatar(true);
     try {
       const form = new FormData();
-      form.append("avatar", f);
+      form.append("image", f);
       await api.patch("/users/profile/picture", form, { headers: { "Content-Type": "multipart/form-data" } });
       await refreshUser();
     } catch { /* ignore */ } finally {
