@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import api from "@/lib/api";
 import UsageBar from "@/components/UsageBar";
+import Emoji from "@/components/Emoji";
 
 interface UsageData {
   role: string;
@@ -62,7 +63,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Hello, {user?.name?.split(" ")[0]} 👋</h1>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">Hello, {user?.name?.split(" ")[0]} <Emoji char="👋" size={26} /></h1>
           <p className="text-muted-foreground text-sm mt-1">
             {isPremium ? "You're on Premium — all features unlocked." : "Free plan · Daily limits reset at midnight UTC"}
           </p>
