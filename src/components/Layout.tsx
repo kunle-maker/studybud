@@ -12,7 +12,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { icon: "fa-house",           label: "Dashboard",      path: "/" },
   { icon: "fa-bolt",            label: "AI Summaries",   path: "/summaries" },
-  { icon: "fa-chalkboard-user", label: "AI Teacher",     path: "/teacher" },
+  { icon: "fa-chalkboard-user", label: "TeachBuddy",     path: "/teacher" },
   { icon: "fa-lightbulb",       label: "Topic Explainer",path: "/topics" },
   { icon: "fa-camera",          label: "OCR Scanner",    path: "/ocr" },
   { icon: "fa-cards-blank",     label: "Flashcards",     path: "/flashcards" },
@@ -118,8 +118,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           >
             <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
               style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)" }}>
-              {user?.avatar ? (
-                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+              {user?.profilePicture ? (
+                <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
               ) : (
                 <i className="fa-solid fa-user text-white/60 text-xs" />
               )}
