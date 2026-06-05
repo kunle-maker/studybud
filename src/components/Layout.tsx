@@ -103,12 +103,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               Upgrade to Premium
             </Link>
           )}
-          {isPremium && (
+          {isPremium && !user?.isAdmin && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
               style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.2)" }}>
               <i className="fa-solid fa-crown text-amber-400 text-sm" />
               <span className="text-amber-300 text-xs font-semibold">Premium Active</span>
             </div>
+          )}
+          {user?.isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all no-underline"
+              style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.30)", color: "#a5b4fc" }}
+            >
+              <i className="fa-solid fa-shield-halved w-4 text-center" />
+              Admin Panel
+            </Link>
           )}
           <Link
             href="/profile"
