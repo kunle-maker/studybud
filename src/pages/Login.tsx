@@ -41,7 +41,7 @@ export default function Login() {
     if (tgRef.current && tgRef.current.childElementCount === 0) {
       const script = document.createElement("script");
       script.src = "https://telegram.org/js/telegram-widget.js?22";
-      script.setAttribute("data-telegram-login", "StudyBudBot");
+      script.setAttribute("data-telegram-login", "studyhub_auth_bot");
       script.setAttribute("data-size", "medium");
       script.setAttribute("data-radius", "12");
       script.setAttribute("data-onauth", "onTelegramAuth(user)");
