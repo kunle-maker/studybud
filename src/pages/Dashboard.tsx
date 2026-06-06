@@ -22,7 +22,7 @@ interface UsageData {
 }
 
 interface DashboardData {
-  totalCounts:    { summaries: number; chats: number; ocrUploads: number };
+  stats:          { totalSummaries: number; totalChats: number; totalOcrUploads: number };
   recentActivity: Array<{ type: string; content: string; createdAt: string }>;
 }
 
@@ -81,9 +81,9 @@ export default function Dashboard() {
       {dashboard && (
         <div className="grid grid-cols-3 gap-4">
           {[
-            { icon: "fa-bolt",     label: "Summaries", value: dashboard.totalCounts?.summaries  ?? 0, color: "text-blue-300 bg-blue-400/15" },
-            { icon: "fa-comments", label: "Chats",     value: dashboard.totalCounts?.chats      ?? 0, color: "text-violet-300 bg-violet-400/15" },
-            { icon: "fa-camera",   label: "OCR Scans", value: dashboard.totalCounts?.ocrUploads ?? 0, color: "text-emerald-300 bg-emerald-400/15" },
+            { icon: "fa-bolt",     label: "Summaries", value: dashboard.stats?.totalSummaries  ?? 0, color: "text-blue-300 bg-blue-400/15" },
+            { icon: "fa-comments", label: "Chats",     value: dashboard.stats?.totalChats      ?? 0, color: "text-violet-300 bg-violet-400/15" },
+            { icon: "fa-camera",   label: "OCR Scans", value: dashboard.stats?.totalOcrUploads ?? 0, color: "text-emerald-300 bg-emerald-400/15" },
           ].map((stat) => (
             <div key={stat.label} data-testid={`stat-${stat.label.toLowerCase()}`}
               className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-3">
