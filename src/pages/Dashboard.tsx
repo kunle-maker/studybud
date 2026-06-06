@@ -34,6 +34,7 @@ const featureCards = [
   { icon: "fa-cards-blank",     label: "Flashcards",       desc: "AI-generated study cards",      path: "/flashcards", color: "bg-pink-400/15 text-pink-300 border-pink-400/20" },
   { icon: "fa-circle-question", label: "Quiz Mode",        desc: "Test your knowledge",           path: "/quiz",       color: "bg-orange-400/15 text-orange-300 border-orange-400/20" },
   { icon: "fa-youtube",         label: "Video Search",     desc: "Find YouTube lessons",          path: "/videos",     color: "bg-red-400/15 text-red-300 border-red-400/20" },
+  { icon: "fa-graduation-cap",  label: "Subject Hub",      desc: "200+ subjects, specialist AI",  path: "/subjects",   color: "bg-fuchsia-400/15 text-fuchsia-300 border-fuchsia-400/20" },
 ];
 
 function limitAsNumber(v: number | string): number {
