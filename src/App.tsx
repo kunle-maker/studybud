@@ -19,6 +19,7 @@ import Videos from "@/pages/Videos";
 import Profile from "@/pages/Profile";
 import Premium from "@/pages/Premium";
 import Admin from "@/pages/Admin";
+import Subjects from "@/pages/Subjects";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -66,7 +67,8 @@ function Router() {
       <Route path="/videos" component={() => <ProtectedRoute component={Videos} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
       <Route path="/premium" component={() => <ProtectedRoute component={Premium} />} />
-      <Route path="/admin"   component={() => <ProtectedRoute component={Admin} />} />
+      <Route path="/admin"    component={() => <ProtectedRoute component={Admin} />} />
+      <Route path="/subjects" component={() => <ProtectedRoute component={Subjects} />} />
       <Route component={NotFound} />
     </Switch>
   );
