@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
   { icon: "fa-cards-blank",     label: "Flashcards",     path: "/flashcards" },
   { icon: "fa-circle-question", label: "Quiz",           path: "/quiz" },
   { icon: "fa-youtube",         label: "Video Search",   path: "/videos" },
+  { icon: "fa-graduation-cap",  label: "Subject Hub",    path: "/subjects" },
 ];
 
 const sidebarBg = {
