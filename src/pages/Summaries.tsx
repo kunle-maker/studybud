@@ -16,6 +16,60 @@ interface HistoryItem {
   createdAt: string;
 }
 
+function renderMarkdown(text: string): React.ReactNode[] {
+  const lines = text.split("\n");
+  return lines.map((line, lineIdx) => {
+    const parts: React.ReactNode[] = [];
+    let remaining = line;
+    let key = 0;
+
+    while (remaining.length > 0) {
+      const boldMatch = remaining.match(/^(.*?)\*\*(.+?)\*\*/s);
+      const italicStarMatch = remaining.match(/^(.*?)\*(.+?)\*/s);
+      const italicUnderMatch = remaining.match(/^(.*?)_(.+?)_/s);
+      const strikeMatch = remaining.match(/^(.*?)~~(.+?)~~/s);
+
+      const candidates: { index: number; match: RegExpMatchArray; type: string }[] = [];
+      if (boldMatch && boldMatch[1] !== undefined) candidates.push({ index: boldMatch[1].length, match: boldMatch, type: "bold" });
+      if (italicStarMatch && italicStarMatch[1] !== undefined) candidates.push({ index: italicStarMatch[1].length, match: italicStarMatch, type: "italicStar" });
+      if (italicUnderMatch && italicUnderMatch[1] !== undefined) candidates.push({ index: italicUnderMatch[1].length, match: italicUnderMatch, type: "italicUnder" });
+      if (strikeMatch && strikeMatch[1] !== undefined) candidates.push({ index: strikeMatch[1].length, match: strikeMatch, type: "strike" });
+
+      if (candidates.length === 0) {
+        parts.push(remaining);
+        break;
+      }
+
+      candidates.sort((a, b) => a.index - b.index);
+      const winner = candidates[0];
+
+      if (winner.match[1]) parts.push(winner.match[1]);
+
+      const inner = winner.match[2];
+      if (winner.type === "bold") {
+        parts.push(<strong key={`${lineIdx}-${key++}`}>{inner}</strong>);
+        remaining = remaining.slice(winner.match[1].length + inner.length + 4);
+      } else if (winner.type === "italicStar") {
+        parts.push(<em key={`${lineIdx}-${key++}`}>{inner}</em>);
+        remaining = remaining.slice(winner.match[1].length + inner.length + 2);
+      } else if (winner.type === "italicUnder") {
+        parts.push(<em key={`${lineIdx}-${key++}`}>{inner}</em>);
+        remaining = remaining.slice(winner.match[1].length + inner.length + 2);
+      } else if (winner.type === "strike") {
+        parts.push(<s key={`${lineIdx}-${key++}`}>{inner}</s>);
+        remaining = remaining.slice(winner.match[1].length + inner.length + 4);
+      }
+    }
+
+    return (
+      <span key={lineIdx}>
+        {parts}
+        {lineIdx < lines.length - 1 && <br />}
+      </span>
+    );
+  });
+}
+
 export default function Summaries() {
   const [text, setText] = useState("");
   const [result, setResult] = useState<SummaryResult | null>(null);
@@ -122,7 +176,9 @@ export default function Summaries() {
               </button>
             </div>
           </div>
-          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{result.summary}</p>
+          <p className="text-sm text-foreground leading-relaxed">
+            {renderMarkdown(result.summary)}
+          </p>
         </div>
       )}
 
@@ -144,7 +200,9 @@ export default function Summaries() {
                   <i className="fa-solid fa-bolt text-primary text-xs" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground line-clamp-2 leading-relaxed">{item.summary}</p>
+                  <p className="text-sm text-foreground line-clamp-2 leading-relaxed">
+                    {renderMarkdown(item.summary)}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-1">{new Date(item.createdAt).toLocaleDateString()} · {item.originalLength} chars original</p>
                 </div>
               </div>
