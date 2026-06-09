@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
 import Layout from "@/components/Layout";
 import Login from "@/pages/Login";
+import EmailAuth from "@/pages/EmailAuth";
 import Register from "@/pages/Register";
 import AuthCallback from "@/pages/AuthCallback";
 import Dashboard from "@/pages/Dashboard";
@@ -55,6 +56,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/login/email" component={EmailAuth} />
       <Route path="/register" component={Register} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
