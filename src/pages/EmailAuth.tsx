@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
@@ -17,34 +17,49 @@ export default function EmailAuth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [statusMsg, setStatusMsg] = useState("");
 
-  if (user) { setLocation("/"); return null; }
+  useEffect(() => {
+    if (user) setLocation("/");
+  }, [user]);
+
+  const doLogin = async (loginEmail: string, loginPassword: string) => {
+    const { data } = await api.post("/auth/login", {
+      email: loginEmail,
+      password: loginPassword,
+    });
+    if (data.success) {
+      loginWithOAuth(data.data.accessToken, data.data.refreshToken, data.data.user);
+    } else {
+      throw new Error(data.message || "Login failed.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setStatusMsg("");
     setLoading(true);
     try {
       if (mode === "register") {
         const { data } = await api.post("/auth/register", { email, password, name });
-        if (data.success) {
-          loginWithOAuth(data.data.accessToken, data.data.refreshToken, data.data.user);
-          setLocation("/");
+        if (data.success || data.message?.toLowerCase().includes("success")) {
+          setStatusMsg("Account created! Signing you inâ€¦");
+          await doLogin(email, password);
         } else {
-          setError(data.message || "Registration failed.");
+          throw new Error(data.message || "Registration failed.");
         }
       } else {
-        const { data } = await api.post("/auth/login", { email, password });
-        if (data.success) {
-          loginWithOAuth(data.data.accessToken, data.data.refreshToken, data.data.user);
-          setLocation("/");
-        } else {
-          setError(data.message || "Login failed.");
-        }
+        await doLogin(email, password);
       }
     } catch (err: any) {
       const msgs: string[] = err?.response?.data?.errors?.map((e: any) => e.msg) ?? [];
-      setError(msgs.length ? msgs.join(" · ") : err?.response?.data?.message || "Something went wrong.");
+      setError(
+        msgs.length
+          ? msgs.join(" Â· ")
+          : err?.response?.data?.message || err?.message || "Something went wrong."
+      );
+      setStatusMsg("");
     } finally {
       setLoading(false);
     }
@@ -111,7 +126,7 @@ export default function EmailAuth() {
             {(["login", "register"] as const).map((m) => (
               <button
                 key={m}
-                onClick={() => { setMode(m); setError(""); }}
+                onClick={() => { setMode(m); setError(""); setStatusMsg(""); }}
                 className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
                 style={mode === m
                   ? { background: "rgba(255,255,255,0.18)", color: "white" }
@@ -123,6 +138,16 @@ export default function EmailAuth() {
             ))}
           </div>
 
+          {/* Status message (e.g. "Account created! Signing you inâ€¦") */}
+          {statusMsg && (
+            <div className="flex items-center gap-2 p-3 rounded-xl text-sm"
+              style={{ background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)", color: "#86efac" }}>
+              <span className="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin flex-shrink-0" />
+              {statusMsg}
+            </div>
+          )}
+
+          {/* Error */}
           {error && (
             <div className="flex items-start gap-2 p-3 rounded-xl text-sm"
               style={{ background: "rgba(239,68,68,0.2)", border: "1px solid rgba(239,68,68,0.35)", color: "#fca5a5" }}>
@@ -142,11 +167,9 @@ export default function EmailAuth() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your name"
                   required
+                  autoComplete="name"
                   className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder:opacity-40 focus:outline-none transition-all"
-                  style={{
-                    background: "rgba(255,255,255,0.1)",
-                    border: "1px solid rgba(255,255,255,0.2)",
-                  }}
+                  style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}
                   onFocus={(e) => { e.currentTarget.style.border = "1px solid rgba(255,255,255,0.45)"; }}
                   onBlur={(e) => { e.currentTarget.style.border = "1px solid rgba(255,255,255,0.2)"; }}
                 />
@@ -163,11 +186,9 @@ export default function EmailAuth() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
+                autoComplete="email"
                 className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder:opacity-40 focus:outline-none transition-all"
-                style={{
-                  background: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                }}
+                style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}
                 onFocus={(e) => { e.currentTarget.style.border = "1px solid rgba(255,255,255,0.45)"; }}
                 onBlur={(e) => { e.currentTarget.style.border = "1px solid rgba(255,255,255,0.2)"; }}
               />
@@ -175,21 +196,19 @@ export default function EmailAuth() {
 
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.6)" }}>
-                Password {mode === "register" && <span className="font-normal opacity-60">(min. 6 characters)</span>}
+                Password{mode === "register" && <span className="font-normal opacity-60"> (min. 6 characters)</span>}
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   required
                   minLength={6}
+                  autoComplete={mode === "register" ? "new-password" : "current-password"}
                   className="w-full px-4 py-3 pr-11 rounded-xl text-sm text-white placeholder:opacity-40 focus:outline-none transition-all"
-                  style={{
-                    background: "rgba(255,255,255,0.1)",
-                    border: "1px solid rgba(255,255,255,0.2)",
-                  }}
+                  style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}
                   onFocus={(e) => { e.currentTarget.style.border = "1px solid rgba(255,255,255,0.45)"; }}
                   onBlur={(e) => { e.currentTarget.style.border = "1px solid rgba(255,255,255,0.2)"; }}
                 />
@@ -213,8 +232,9 @@ export default function EmailAuth() {
               onMouseLeave={(e) => { e.currentTarget.style.background = "hsl(217 91% 48%)"; }}
             >
               {loading ? (
-                <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {mode === "login" ? "Signing in…" : "Creating account…"}
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  {mode === "login" ? "Signing inâ€¦" : "Creating accountâ€¦"}
                 </>
               ) : (
                 <>{mode === "login" ? "Sign In" : "Create Account"}</>
@@ -225,7 +245,7 @@ export default function EmailAuth() {
           <p className="text-center text-xs pt-1" style={{ color: "rgba(255,255,255,0.4)" }}>
             {mode === "login" ? "Don't have an account? " : "Already have an account? "}
             <button
-              onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}
+              onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); setStatusMsg(""); }}
               className="underline underline-offset-2 font-semibold transition-opacity hover:opacity-80"
               style={{ color: "rgba(255,255,255,0.75)" }}
             >
