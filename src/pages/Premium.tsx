@@ -148,7 +148,7 @@ export default function Premium() {
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Premium Plan</p>
               <div className="flex items-start gap-1 leading-none">
                 <span className="text-lg font-bold text-primary mt-0.5">₦</span>
-                <span className="text-5xl font-black text-foreground">1,000</span>
+                <span className="text-5xl font-black text-foreground">200</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1.5">30-day access · renews manually</p>
             </div>
@@ -175,7 +175,7 @@ export default function Premium() {
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
         <div className="px-5 py-3.5 border-b border-border flex items-center gap-3">
           <span className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">1</span>
-          <p className="text-sm font-semibold text-foreground">Transfer exactly ₦1,000</p>
+          <p className="text-sm font-semibold text-foreground">Transfer exactly ₦200</p>
         </div>
 
         <div className="p-5 space-y-4">
@@ -222,7 +222,7 @@ export default function Premium() {
         <div className="p-5 space-y-4">
           <p className="text-xs text-muted-foreground">
             The screenshot must clearly show: <strong className="text-foreground">Ayodele Ganiyu</strong> ·{" "}
-            <strong className="text-foreground">SmartCash</strong> · <strong className="text-foreground">₦1,000</strong> · today&rsquo;s date
+            <strong className="text-foreground">SmartCash</strong> · <strong className="text-foreground">₦200</strong> · today&rsquo;s date
           </p>
 
           {/* Drop zone */}
@@ -284,7 +284,7 @@ export default function Premium() {
                 )}
                 {!uploadOk && (
                   <p className="text-xs text-muted-foreground mt-1.5">
-                    Tip: Make sure the receipt clearly shows all 3 details — name, bank, and ₦1,000 amount.
+                    Tip: Make sure the receipt clearly shows all 3 details — name, bank, and ₦200 amount.
                   </p>
                 )}
               </div>
