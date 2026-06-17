@@ -21,6 +21,39 @@ const accountDetails = [
   { label: "Account Number", value: "9012834275",     mono: true  },
 ];
 
+function WCAnimations() {
+  return (
+    <style>{`
+      @keyframes wcFloat1 {
+        0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.22; }
+        50%       { transform: translateY(-18px) rotate(6deg); opacity: 0.35; }
+      }
+      @keyframes wcFloat2 {
+        0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.15; }
+        50%       { transform: translateY(-22px) rotate(-5deg); opacity: 0.25; }
+      }
+      @keyframes wcFloat3 {
+        0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.12; }
+        33%       { transform: translateY(-16px) rotate(4deg); opacity: 0.22; }
+        66%       { transform: translateY(-8px) rotate(-3deg); opacity: 0.18; }
+      }
+      @keyframes wcSpin {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+      }
+      @keyframes wcPulseGold {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0.25); }
+        50%       { box-shadow: 0 0 0 10px rgba(251,191,36,0); }
+      }
+      @keyframes wcSlideIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .wc-promo-banner { animation: wcSlideIn 0.5s ease-out both; }
+    `}</style>
+  );
+}
+
 export default function Premium() {
   const { user, refreshUser } = useAuth();
   const [checking,      setChecking]      = useState(false);
@@ -88,12 +121,19 @@ export default function Premium() {
   if (isPremium) {
     return (
       <div className="max-w-lg space-y-5">
+        <WCAnimations />
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
-          <div className="p-8 text-center space-y-2" style={{
+          <div className="p-8 text-center space-y-2 relative overflow-hidden" style={{
             background: "linear-gradient(135deg, rgba(251,191,36,0.08) 0%, transparent 60%)"
           }}>
+            <img
+              src="/wc-badge.svg"
+              alt="" aria-hidden
+              className="absolute -top-5 -right-5 w-24 h-24 pointer-events-none select-none"
+              style={{ animation: "wcFloat1 4.5s ease-in-out infinite", opacity: 0.18 }}
+            />
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.28)" }}>
+              style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.28)", animation: "wcPulseGold 2.5s ease-in-out infinite" }}>
               <i className="fa-solid fa-crown text-amber-400 text-2xl" />
             </div>
             <h1 className="text-2xl font-black text-foreground">You&rsquo;re on Premium</h1>
@@ -133,6 +173,77 @@ export default function Premium() {
   /* ─── Free user view ──────────────────────────────────────────────────── */
   return (
     <div className="max-w-xl space-y-5">
+      <WCAnimations />
+
+      {/* ── World Cup Promo Banner ────────────────────────────────────── */}
+      <div
+        className="wc-promo-banner relative rounded-2xl overflow-hidden p-5"
+        style={{
+          background: "linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)",
+          border: "1px solid rgba(52,211,153,0.35)",
+          boxShadow: "0 4px 24px rgba(5,150,105,0.2)",
+        }}
+      >
+        {/* Floating WC badge decorations */}
+        <img
+          src="/wc-badge.svg"
+          alt="" aria-hidden
+          className="absolute -top-4 -right-4 w-24 h-24 pointer-events-none select-none"
+          style={{ animation: "wcFloat1 4s ease-in-out infinite", opacity: 0.22, filter: "brightness(0) invert(1)" }}
+        />
+        <img
+          src="/wc-badge.svg"
+          alt="" aria-hidden
+          className="absolute bottom-1 right-24 w-12 h-12 pointer-events-none select-none"
+          style={{ animation: "wcFloat2 5.5s ease-in-out infinite 1.2s", opacity: 0.14, filter: "brightness(0) invert(1)" }}
+        />
+        <img
+          src="/wc-badge.svg"
+          alt="" aria-hidden
+          className="absolute top-2 left-[55%] w-9 h-9 pointer-events-none select-none"
+          style={{ animation: "wcFloat3 6.5s ease-in-out infinite 0.4s", opacity: 0.12, filter: "brightness(0) invert(1)" }}
+        />
+
+        <div className="relative z-10 flex items-center gap-4">
+          {/* WC logo as the main icon */}
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+            style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)" }}
+          >
+            <img
+              src="/wc-logo.svg"
+              alt="FIFA World Cup 2026"
+              className="w-10 h-10 object-contain"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-0.5">
+              <span className="flex items-center gap-1 text-xs font-bold text-amber-300 uppercase tracking-widest">
+                <Emoji char="🏆" size={13} />
+                World Cup Promo
+              </span>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                style={{ background: "rgba(251,191,36,0.25)", border: "1px solid rgba(251,191,36,0.4)", color: "#fcd34d" }}>
+                Limited Time
+              </span>
+            </div>
+            <p className="text-white font-bold text-base leading-tight">
+              Special promo price — valid until the World Cup ends!
+            </p>
+            <p className="text-emerald-200/70 text-xs mt-0.5 flex items-center gap-1">
+              <Emoji char="⚽" size={12} />
+              Celebrate the beautiful game with unlimited studying
+            </p>
+          </div>
+        </div>
+
+        {/* Pitch lines decoration */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl" style={{ opacity: 0.06 }}>
+          <div className="absolute inset-x-0 top-1/2 h-px bg-white" />
+          <div className="absolute top-1/4 bottom-1/4 left-1/2 w-px bg-white" />
+          <div className="absolute top-1/2 left-1/2 w-16 h-16 rounded-full border border-white -translate-x-1/2 -translate-y-1/2" />
+        </div>
+      </div>
 
       {/* Page header */}
       <div>
@@ -142,18 +253,38 @@ export default function Premium() {
 
       {/* ── Pricing + features ─────────────────────────────────────── */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center justify-between">
+        <div className="p-6 border-b border-border relative overflow-hidden">
+          {/* WC badge watermark */}
+          <img
+            src="/wc-badge.svg"
+            alt="" aria-hidden
+            className="absolute -bottom-5 -right-5 w-32 h-32 pointer-events-none select-none"
+            style={{ animation: "wcFloat2 5s ease-in-out infinite", opacity: 0.05 }}
+          />
+          <div className="flex items-start justify-between relative z-10">
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Premium Plan</p>
-              <div className="flex items-start gap-1 leading-none">
-                <span className="text-lg font-bold text-primary mt-0.5">₦</span>
-                <span className="text-5xl font-black text-foreground">200</span>
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Premium Plan</p>
+                <span className="flex items-center gap-1.5 text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.3)", color: "#fbbf24" }}>
+                  <img src="/wc-badge.svg" alt="" aria-hidden className="w-3 h-3 object-contain" />
+                  WC Promo
+                </span>
+              </div>
+              <div className="flex items-center gap-2 leading-none">
+                <div className="flex items-start gap-1">
+                  <span className="text-lg font-bold text-primary mt-0.5">₦</span>
+                  <span className="text-5xl font-black text-foreground">200</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs line-through text-muted-foreground/60 font-medium">₦1,000</span>
+                  <span className="text-xs font-bold text-emerald-400">80% OFF</span>
+                </div>
               </div>
               <p className="text-xs text-muted-foreground mt-1.5">30-day access · renews manually</p>
             </div>
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.25)" }}>
+              style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.25)", animation: "wcPulseGold 2.5s ease-in-out infinite" }}>
               <i className="fa-solid fa-crown text-amber-400 text-2xl" />
             </div>
           </div>
@@ -179,7 +310,6 @@ export default function Premium() {
         </div>
 
         <div className="p-5 space-y-4">
-          {/* Account details */}
           <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
             {accountDetails.map(d => (
               <div key={d.label} className="flex items-center justify-between px-4 py-3">
@@ -225,7 +355,6 @@ export default function Premium() {
             <strong className="text-foreground">SmartCash</strong> · <strong className="text-foreground">₦200</strong> · today&rsquo;s date
           </p>
 
-          {/* Drop zone */}
           <label className={`relative flex flex-col items-center justify-center gap-3 w-full py-8 px-4 rounded-xl border-2 border-dashed transition-all cursor-pointer group ${
             uploading ? "border-primary/40 bg-primary/5 cursor-wait" : "border-border hover:border-primary/50 hover:bg-muted/30"
           }`}>
@@ -239,7 +368,12 @@ export default function Premium() {
             />
             {uploading ? (
               <>
-                <span className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <img
+                  src="/wc-logo.svg"
+                  alt="Verifying…"
+                  className="w-12 h-12 object-contain"
+                  style={{ animation: "wcSpin 1.4s linear infinite" }}
+                />
                 <div className="text-center">
                   <p className="text-sm font-semibold text-foreground">Verifying with AI…</p>
                   <p className="text-xs text-muted-foreground mt-0.5">This takes a few seconds</p>
@@ -261,7 +395,6 @@ export default function Premium() {
             )}
           </label>
 
-          {/* Upload result */}
           {uploadMsg && (
             <div className="flex items-start gap-3 p-4 rounded-xl"
               style={{
@@ -291,7 +424,6 @@ export default function Premium() {
             </div>
           )}
 
-          {/* Check status */}
           <div className="flex items-center justify-between pt-1">
             <p className="text-xs text-muted-foreground">Already uploaded and waiting?</p>
             <button
@@ -323,6 +455,12 @@ export default function Premium() {
       <p className="text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5 pb-2">
         <i className="fa-solid fa-lock text-emerald-400" />
         AI-powered receipt verification — StudyBud
+        <img
+          src="/wc-badge.svg"
+          alt="" aria-hidden
+          className="w-3.5 h-3.5 inline-block object-contain"
+          style={{ animation: "wcSpin 5s linear infinite" }}
+        />
       </p>
     </div>
   );
