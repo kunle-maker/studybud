@@ -20,26 +20,59 @@ import Videos from "@/pages/Videos";
 import Profile from "@/pages/Profile";
 import Premium from "@/pages/Premium";
 import Admin from "@/pages/Admin";
+import AdminLogin from "@/pages/AdminLogin";
 import Subjects from "@/pages/Subjects";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
 
+function FootballLoader() {
+  return (
+    <>
+      <style>{`
+        @keyframes wcLoadBounce {
+          0%, 100% { transform: translateY(0px); }
+          50%       { transform: translateY(-12px); }
+        }
+        @keyframes wcLoadFade {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes wcLoadSpin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+      `}</style>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-5" style={{ animation: "wcLoadFade 0.4s ease-out both" }}>
+          <div style={{ animation: "wcLoadBounce 1s ease-in-out infinite" }}>
+            <img
+              src="/wc-logo.svg"
+              alt="Loading…"
+              width={60}
+              height={60}
+              style={{
+                animation: "wcLoadSpin 2.4s linear infinite",
+                filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.2))",
+                display: "block",
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "hsl(217 91% 48%)" }}>
-            <i className="fa-solid fa-graduation-cap text-white text-lg" />
-          </div>
-          <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <FootballLoader />;
 
   if (!user) {
     return <Redirect to="/login" />;
@@ -55,22 +88,23 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 function Router() {
   return (
     <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/login/email" component={EmailAuth} />
-      <Route path="/register" component={Register} />
+      <Route path="/login"         component={Login} />
+      <Route path="/login/email"   component={EmailAuth} />
+      <Route path="/login/admin"   component={AdminLogin} />
+      <Route path="/register"      component={Register} />
       <Route path="/auth/callback" component={AuthCallback} />
-      <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
-      <Route path="/summaries" component={() => <ProtectedRoute component={Summaries} />} />
-      <Route path="/teacher" component={() => <ProtectedRoute component={TeacherChat} />} />
-      <Route path="/topics" component={() => <ProtectedRoute component={Topics} />} />
-      <Route path="/ocr" component={() => <ProtectedRoute component={OCR} />} />
-      <Route path="/flashcards" component={() => <ProtectedRoute component={Flashcards} />} />
-      <Route path="/quiz" component={() => <ProtectedRoute component={Quiz} />} />
-      <Route path="/videos" component={() => <ProtectedRoute component={Videos} />} />
-      <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
-      <Route path="/premium" component={() => <ProtectedRoute component={Premium} />} />
-      <Route path="/admin"    component={() => <ProtectedRoute component={Admin} />} />
-      <Route path="/subjects" component={() => <ProtectedRoute component={Subjects} />} />
+      <Route path="/"              component={() => <ProtectedRoute component={Dashboard} />} />
+      <Route path="/summaries"     component={() => <ProtectedRoute component={Summaries} />} />
+      <Route path="/teacher"       component={() => <ProtectedRoute component={TeacherChat} />} />
+      <Route path="/topics"        component={() => <ProtectedRoute component={Topics} />} />
+      <Route path="/ocr"           component={() => <ProtectedRoute component={OCR} />} />
+      <Route path="/flashcards"    component={() => <ProtectedRoute component={Flashcards} />} />
+      <Route path="/quiz"          component={() => <ProtectedRoute component={Quiz} />} />
+      <Route path="/videos"        component={() => <ProtectedRoute component={Videos} />} />
+      <Route path="/profile"       component={() => <ProtectedRoute component={Profile} />} />
+      <Route path="/premium"       component={() => <ProtectedRoute component={Premium} />} />
+      <Route path="/admin"         component={() => <ProtectedRoute component={Admin} />} />
+      <Route path="/subjects"      component={() => <ProtectedRoute component={Subjects} />} />
       <Route component={NotFound} />
     </Switch>
   );
