@@ -22,6 +22,9 @@ import Premium from "@/pages/Premium";
 import Admin from "@/pages/Admin";
 import AdminLogin from "@/pages/AdminLogin";
 import Subjects from "@/pages/Subjects";
+import Roadmaps from "@/pages/Roadmaps";
+import Assignments from "@/pages/Assignments";
+import AssignmentJoin from "@/pages/AssignmentJoin";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -105,6 +108,9 @@ function Router() {
       <Route path="/premium"       component={() => <ProtectedRoute component={Premium} />} />
       <Route path="/admin"         component={() => <ProtectedRoute component={Admin} />} />
       <Route path="/subjects"      component={() => <ProtectedRoute component={Subjects} />} />
+      <Route path="/roadmaps"      component={() => <ProtectedRoute component={Roadmaps} />} />
+      <Route path="/assignments"         component={() => <ProtectedRoute component={Assignments} />} />
+      <Route path="/assignments/join/:token" component={AssignmentJoin} />
       <Route component={NotFound} />
     </Switch>
   );
