@@ -1,8 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import {
-  FaBookOpen, FaGlasses, FaBolt, FaFire, FaCrosshairs, FaMicroscope,
-} from "react-icons/fa6";
-import type { IconType } from "react-icons";
 import api from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import LimitBanner from "@/components/LimitBanner";
@@ -30,7 +26,7 @@ type View = "home" | "chat";
 interface StyleDef {
   key: TeachingStyle;
   label: string;
-  Icon: IconType;
+  faIcon: string;
   color: string;
   bg: string;
   desc: string;
@@ -38,12 +34,12 @@ interface StyleDef {
 }
 
 const STYLES: StyleDef[] = [
-  { key: "default",     label: "Classic",    Icon: FaBookOpen,   color: "text-blue-400",   bg: "bg-blue-400/15",   desc: "Friendly and patient",   premiumOnly: false },
-  { key: "cool",        label: "Chill",      Icon: FaGlasses,    color: "text-sky-400",    bg: "bg-sky-400/15",    desc: "Relaxed, no stress",     premiumOnly: true  },
-  { key: "concise",     label: "No Fluff",   Icon: FaBolt,       color: "text-yellow-400", bg: "bg-yellow-400/15", desc: "Short, direct answers",  premiumOnly: true  },
-  { key: "playful",     label: "Gen Z Mode", Icon: FaFire,       color: "text-orange-400", bg: "bg-orange-400/15", desc: "Slay, fr fr, no cap",    premiumOnly: true  },
-  { key: "controlling", label: "Strict",     Icon: FaCrosshairs, color: "text-red-400",    bg: "bg-red-400/15",    desc: "Holds you accountable",  premiumOnly: true  },
-  { key: "detailed",    label: "Deep Dive",  Icon: FaMicroscope, color: "text-violet-400", bg: "bg-violet-400/15", desc: "Thorough & in-depth",    premiumOnly: true  },
+  { key: "default",     label: "Classic",    faIcon: "fa-book-open",    color: "text-blue-400",   bg: "bg-blue-400/15",   desc: "Friendly and patient",   premiumOnly: false },
+  { key: "cool",        label: "Chill",      faIcon: "fa-glasses",      color: "text-sky-400",    bg: "bg-sky-400/15",    desc: "Relaxed, no stress",     premiumOnly: true  },
+  { key: "concise",     label: "No Fluff",   faIcon: "fa-bolt",         color: "text-yellow-400", bg: "bg-yellow-400/15", desc: "Short, direct answers",  premiumOnly: true  },
+  { key: "playful",     label: "Gen Z Mode", faIcon: "fa-fire",         color: "text-orange-400", bg: "bg-orange-400/15", desc: "Slay, fr fr, no cap",    premiumOnly: true  },
+  { key: "controlling", label: "Strict",     faIcon: "fa-crosshairs",   color: "text-red-400",    bg: "bg-red-400/15",    desc: "Holds you accountable",  premiumOnly: true  },
+  { key: "detailed",    label: "Deep Dive",  faIcon: "fa-microscope",   color: "text-violet-400", bg: "bg-violet-400/15", desc: "Thorough & in-depth",    premiumOnly: true  },
 ];
 
 const HOME_TABS: { key: HomeTab; label: string; icon: string; premiumOnly: boolean }[] = [
@@ -312,7 +308,7 @@ export default function TeacherChat() {
                       className="flex items-start gap-3 px-5 py-4 hover:bg-muted/30 cursor-pointer transition-colors group"
                     >
                       <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center flex-shrink-0`}>
-                        <s.Icon className={`${s.color} text-sm`} />
+                        <i className={`fa-solid ${s.faIcon} ${s.color} text-sm`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -515,7 +511,7 @@ export default function TeacherChat() {
           <div className="min-w-0">
             <h1 className="text-base font-bold text-foreground truncate">{chatTitle}</h1>
             <div className="flex items-center gap-1.5">
-              <styleInfo.Icon className={`${styleInfo.color} text-xs`} />
+              <i className={`fa-solid ${styleInfo.faIcon} ${styleInfo.color} text-xs`} />
               <p className="text-xs text-muted-foreground">{styleInfo.label}</p>
             </div>
           </div>
@@ -581,7 +577,7 @@ export default function TeacherChat() {
                   style={active ? { background: "rgba(99,102,241,0.08)", borderColor: "rgba(99,102,241,0.5)" } : undefined}
                 >
                   <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center flex-shrink-0`}>
-                    <s.Icon className={`${s.color} text-sm`} />
+                    <i className={`fa-solid ${s.faIcon} ${s.color} text-sm`} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-foreground leading-tight">{s.label}</p>
@@ -627,7 +623,7 @@ export default function TeacherChat() {
           {messages.length === 0 && (
             <div className="h-full flex flex-col items-center justify-center text-center py-12">
               <div className={`w-14 h-14 rounded-2xl ${styleInfo.bg} flex items-center justify-center mb-4`}>
-                <styleInfo.Icon className={`${styleInfo.color} text-2xl`} />
+                <i className={`fa-solid ${styleInfo.faIcon} ${styleInfo.color} text-2xl`} />
               </div>
               <p className="font-semibold text-foreground text-base">TeachBuddy is ready</p>
               <p className="text-sm text-muted-foreground mt-2 max-w-sm">
@@ -655,7 +651,7 @@ export default function TeacherChat() {
               }`}>
                 {msg.role === "user"
                   ? <i className="fa-solid fa-user text-white text-xs" />
-                  : <styleInfo.Icon className={`${styleInfo.color} text-sm`} />}
+                  : <i className={`fa-solid ${styleInfo.faIcon} ${styleInfo.color} text-sm`} />}
               </div>
               <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                 msg.role === "user"
@@ -670,7 +666,7 @@ export default function TeacherChat() {
           {loading && (
             <div className="flex gap-3">
               <div className={`w-8 h-8 rounded-xl ${styleInfo.bg} flex items-center justify-center flex-shrink-0`}>
-                <styleInfo.Icon className={`${styleInfo.color} text-sm`} />
+                <i className={`fa-solid ${styleInfo.faIcon} ${styleInfo.color} text-sm`} />
               </div>
               <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />

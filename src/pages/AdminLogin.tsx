@@ -8,7 +8,7 @@ export default function AdminLogin() {
   const { user, loginWithOAuth } = useAuth();
   const [, setLocation]          = useLocation();
   const { theme, toggle }        = useTheme();
-  const [username, setUsername]  = useState("");
+  const [email,    setEmail]    = useState("");
   const [password, setPassword]  = useState("");
   const [showPass, setShowPass]  = useState(false);
   const [error, setError]        = useState("");
@@ -23,13 +23,13 @@ export default function AdminLogin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!username.trim() || !password.trim()) {
-      setError("Please enter both username and password.");
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter both email and password.");
       return;
     }
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/admin-login", { username: username.trim(), password });
+      const { data } = await api.post("/auth/admin-login", { email: email.trim(), password });
       if (data.success) {
         loginWithOAuth(data.data.accessToken, data.data.refreshToken, data.data.user);
         setLocation("/admin");
@@ -168,21 +168,21 @@ export default function AdminLogin() {
             <p className="text-xs font-semibold uppercase tracking-widest text-center"
               style={{ color: "rgba(255,255,255,0.45)" }}>Enter admin credentials</p>
 
-            {/* Username */}
+            {/* Email */}
             <div className="space-y-1.5">
               <label className="block text-xs font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>
-                Username
+                Email
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  <i className="fa-solid fa-user text-sm" />
+                  <i className="fa-solid fa-envelope text-sm" />
                 </span>
                 <input
-                  type="text"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  placeholder="Username"
-                  autoComplete="username"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="admin@example.com"
+                  autoComplete="email"
                   className="w-full pl-9 pr-4 py-3 rounded-xl text-sm font-medium placeholder:font-normal outline-none transition-all"
                   style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", caretColor: "white", color: "white" }}
                   onFocus={e => { e.currentTarget.style.border = "1px solid rgba(255,255,255,0.45)"; e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}

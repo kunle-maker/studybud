@@ -27,14 +27,16 @@ interface DashboardData {
 }
 
 const featureCards = [
-  { icon: "fa-bolt",            label: "Summarize Text",   desc: "Condense any study material",  path: "/summaries",  color: "bg-blue-400/15 text-blue-300 border-blue-400/20" },
-  { icon: "fa-chalkboard-user", label: "TeachBuddy",        desc: "Multi-turn study chat",         path: "/teacher",    color: "bg-violet-400/15 text-violet-300 border-violet-400/20" },
-  { icon: "fa-lightbulb",       label: "Explain Topic",    desc: "Deep explanations",             path: "/topics",     color: "bg-amber-400/15 text-amber-300 border-amber-400/20" },
-  { icon: "fa-camera",          label: "OCR Scanner",      desc: "Extract text from images",      path: "/ocr",        color: "bg-emerald-400/15 text-emerald-300 border-emerald-400/20" },
-  { icon: "fa-cards-blank",     label: "Flashcards",       desc: "AI-generated study cards",      path: "/flashcards", color: "bg-pink-400/15 text-pink-300 border-pink-400/20" },
-  { icon: "fa-circle-question", label: "Quiz Mode",        desc: "Test your knowledge",           path: "/quiz",       color: "bg-orange-400/15 text-orange-300 border-orange-400/20" },
-  { icon: "fa-youtube",         label: "Video Search",     desc: "Find YouTube lessons",          path: "/videos",     color: "bg-red-400/15 text-red-300 border-red-400/20" },
-  { icon: "fa-graduation-cap",  label: "Subject Hub",      desc: "200+ subjects, specialist AI",  path: "/subjects",   color: "bg-fuchsia-400/15 text-fuchsia-300 border-fuchsia-400/20" },
+  { icon: "fa-bolt",            label: "Summarize Text",   desc: "Condense any study material",        path: "/summaries",   color: "bg-blue-400/15 text-blue-300 border-blue-400/20" },
+  { icon: "fa-chalkboard-user", label: "TeachBuddy",       desc: "Multi-turn study chat",              path: "/teacher",     color: "bg-violet-400/15 text-violet-300 border-violet-400/20" },
+  { icon: "fa-lightbulb",       label: "Explain Topic",    desc: "Deep explanations",                  path: "/topics",      color: "bg-amber-400/15 text-amber-300 border-amber-400/20" },
+  { icon: "fa-map",             label: "Roadmaps",         desc: "Structured learning paths",          path: "/roadmaps",    color: "bg-teal-400/15 text-teal-300 border-teal-400/20" },
+  { icon: "fa-clipboard-list",  label: "Assignments",      desc: "Collaborate with classmates",        path: "/assignments", color: "bg-indigo-400/15 text-indigo-300 border-indigo-400/20" },
+  { icon: "fa-camera",          label: "OCR Scanner",      desc: "Extract text from images",           path: "/ocr",         color: "bg-emerald-400/15 text-emerald-300 border-emerald-400/20" },
+  { icon: "fa-cards-blank",     label: "Flashcards",       desc: "AI-generated study cards",           path: "/flashcards",  color: "bg-pink-400/15 text-pink-300 border-pink-400/20" },
+  { icon: "fa-circle-question", label: "Quiz Mode",        desc: "Test your knowledge",                path: "/quiz",        color: "bg-orange-400/15 text-orange-300 border-orange-400/20" },
+  { icon: "fa-youtube",         label: "Video Search",     desc: "Find YouTube lessons",               path: "/videos",      color: "bg-red-400/15 text-red-300 border-red-400/20" },
+  { icon: "fa-graduation-cap",  label: "Subject Hub",      desc: "200+ subjects, specialist AI",       path: "/subjects",    color: "bg-fuchsia-400/15 text-fuchsia-300 border-fuchsia-400/20" },
 ];
 
 function limitAsNumber(v: number | string): number {
