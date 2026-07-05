@@ -14,6 +14,8 @@ const navItems: NavItem[] = [
   { icon: "fa-bolt",            label: "AI Summaries",   path: "/summaries" },
   { icon: "fa-chalkboard-user", label: "TeachBuddy",     path: "/teacher" },
   { icon: "fa-lightbulb",       label: "Topic Explainer",path: "/topics" },
+  { icon: "fa-map",             label: "Roadmaps",       path: "/roadmaps" },
+  { icon: "fa-clipboard-list",  label: "Assignments",    path: "/assignments" },
   { icon: "fa-camera",          label: "OCR Scanner",    path: "/ocr" },
   { icon: "fa-cards-blank",     label: "Flashcards",     path: "/flashcards" },
   { icon: "fa-circle-question", label: "Quiz",           path: "/quiz" },
