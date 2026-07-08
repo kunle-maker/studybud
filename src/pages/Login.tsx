@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import api from "@/lib/api";
 
-const BACKEND = "https://studybud-backend.onrender.com/api/v1";
+const BACKEND = import.meta.env.VITE_API_URL || "/api/v1";
 
 export default function Login() {
   const { user, loginWithOAuth } = useAuth();

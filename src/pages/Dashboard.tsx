@@ -1,173 +1,150 @@
-import { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import api from "@/lib/api";
-import UsageBar from "@/components/UsageBar";
-import Emoji from "@/components/Emoji";
 
-interface UsageData {
-  role: string;
-  usageStats: {
-    summariesToday:          number;
-    teacherQuestionsToday:   number;
-    topicExplanationsToday:  number;
-    ocrToday:                number;
-  };
-  limits: {
-    summaries: number | string;
-    teacher:   number | string;
-    topic:     number | string;
-    ocr:       number | string;
-  };
+interface UsageStats {
+  teacherQuestionsToday: number;
+  summariesToday: number;
+  ocrUploadsToday: number;
+  dailyLimitTeacher: number;
+  dailyLimitSummaries: number;
+  dailyLimitOcr: number;
 }
 
-interface DashboardData {
-  stats:          { totalSummaries: number; totalChats: number; totalOcrUploads: number };
-  recentActivity: Array<{ type: string; content: string; createdAt: string }>;
-}
-
-const featureCards = [
-  { icon: "fa-bolt",            label: "Summarize Text",   desc: "Condense any study material",        path: "/summaries",   color: "bg-blue-400/15 text-blue-300 border-blue-400/20" },
-  { icon: "fa-chalkboard-user", label: "TeachBuddy",       desc: "Multi-turn study chat",              path: "/teacher",     color: "bg-violet-400/15 text-violet-300 border-violet-400/20" },
-  { icon: "fa-lightbulb",       label: "Explain Topic",    desc: "Deep explanations",                  path: "/topics",      color: "bg-amber-400/15 text-amber-300 border-amber-400/20" },
-  { icon: "fa-map",             label: "Roadmaps",         desc: "Structured learning paths",          path: "/roadmaps",    color: "bg-teal-400/15 text-teal-300 border-teal-400/20" },
-  { icon: "fa-clipboard-list",  label: "Assignments",      desc: "Collaborate with classmates",        path: "/assignments", color: "bg-indigo-400/15 text-indigo-300 border-indigo-400/20" },
-  { icon: "fa-camera",          label: "OCR Scanner",      desc: "Extract text from images",           path: "/ocr",         color: "bg-emerald-400/15 text-emerald-300 border-emerald-400/20" },
-  { icon: "fa-cards-blank",     label: "Flashcards",       desc: "AI-generated study cards",           path: "/flashcards",  color: "bg-pink-400/15 text-pink-300 border-pink-400/20" },
-  { icon: "fa-circle-question", label: "Quiz Mode",        desc: "Test your knowledge",                path: "/quiz",        color: "bg-orange-400/15 text-orange-300 border-orange-400/20" },
-  { icon: "fa-youtube",         label: "Video Search",     desc: "Find YouTube lessons",               path: "/videos",      color: "bg-red-400/15 text-red-300 border-red-400/20" },
-  { icon: "fa-graduation-cap",  label: "Subject Hub",      desc: "200+ subjects, specialist AI",       path: "/subjects",    color: "bg-fuchsia-400/15 text-fuchsia-300 border-fuchsia-400/20" },
+const FEATURES = [
+  { label: "AI Tutor",    desc: "Instant explanations in any style", icon: "fa-robot",           path: "/teacher",     grad: "from-blue-500/15 to-transparent",   border: "border-blue-500/20",   ic: "text-blue-400"   },
+  { label: "Summaries",   desc: "Condense any text to key points",   icon: "fa-file-lines",      path: "/summaries",   grad: "from-green-500/15 to-transparent",  border: "border-green-500/20",  ic: "text-green-400"  },
+  { label: "Flashcards",  desc: "AI-generated study cards",          icon: "fa-clone",           path: "/flashcards",  grad: "from-yellow-500/15 to-transparent", border: "border-yellow-500/20", ic: "text-yellow-400" },
+  { label: "Quiz Mode",   desc: "Test yourself with smart MCQs",     icon: "fa-circle-question", path: "/quiz",        grad: "from-orange-500/15 to-transparent", border: "border-orange-500/20", ic: "text-orange-400" },
+  { label: "Roadmaps",    desc: "Structured paths for any subject",  icon: "fa-map",             path: "/roadmaps",    grad: "from-indigo-500/15 to-transparent", border: "border-indigo-500/20", ic: "text-indigo-400" },
+  { label: "Assignments", desc: "AI-graded collaborative work",      icon: "fa-clipboard-list",  path: "/assignments", grad: "from-violet-500/15 to-transparent", border: "border-violet-500/20", ic: "text-violet-400" },
+  { label: "Subjects",    desc: "Expert tutors per subject area",    icon: "fa-book-open",       path: "/subjects",    grad: "from-teal-500/15 to-transparent",   border: "border-teal-500/20",   ic: "text-teal-400"   },
+  { label: "OCR Scanner", desc: "Extract text from images",          icon: "fa-camera",          path: "/ocr",         grad: "from-rose-500/15 to-transparent",   border: "border-rose-500/20",   ic: "text-rose-400"   },
+  { label: "Topics",      desc: "Deep-dive explanations on demand",  icon: "fa-magnifying-glass",path: "/topics",      grad: "from-sky-500/15 to-transparent",    border: "border-sky-500/20",    ic: "text-sky-400"    },
+  { label: "Videos",      desc: "Curated educational videos",        icon: "fa-play",            path: "/videos",      grad: "from-red-500/15 to-transparent",    border: "border-red-500/20",    ic: "text-red-400"    },
 ];
 
-function limitAsNumber(v: number | string): number {
-  return typeof v === "number" ? v : 999;
-}
+const QUICK_PROMPTS = [
+  "Explain photosynthesis clearly",
+  "Help me understand calculus",
+  "What caused World War I?",
+  "Teach me Newton's laws",
+];
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [usage,     setUsage]     = useState<UsageData | null>(null);
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-  const [loading,   setLoading]   = useState(true);
+  const [, setLocation] = useLocation();
+  const [stats, setStats] = useState<UsageStats | null>(null);
+  const isPremium = user?.role === "premium";
+  const firstName = user?.name?.split(" ")[0] || "there";
 
   useEffect(() => {
-    Promise.all([
-      api.get("/users/usage").then(r => r.data.data),
-      api.get("/users/dashboard").then(r => r.data.data),
-    ]).then(([u, d]) => {
-      setUsage(u);
-      setDashboard(d);
-    }).catch(() => {}).finally(() => setLoading(false));
+    api.get("/users/usage").then(r => setStats(r.data.data)).catch(() => {});
   }, []);
 
-  const isPremium = user?.role === "premium";
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
+  })();
 
   return (
-    <div className="space-y-8 max-w-4xl">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div className="max-w-5xl mx-auto space-y-8 pb-8">
+
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between gap-4 pt-1">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">Hello, {user?.name?.split(" ")[0]} <Emoji char="👋" size={26} /></h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {isPremium ? "You're on Premium — all features unlocked." : "Free plan · Daily limits reset at midnight UTC"}
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">{greeting}</p>
+          <h1 className="text-2xl font-bold text-foreground mt-0.5">{firstName}</h1>
+          <p className="text-sm text-muted-foreground mt-1">What would you like to study today?</p>
         </div>
-        {!isPremium && (
-          <Link href="/premium" data-testid="btn-upgrade"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-amber-300 hover:text-amber-200 transition-colors no-underline"
-            style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.28)" }}>
-            <i className="fa-solid fa-crown text-amber-400" />Upgrade to Premium
-          </Link>
+        {isPremium && (
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 px-3 py-1.5 rounded-full border flex-shrink-0"
+            style={{ background: "rgba(251,191,36,0.08)", borderColor: "rgba(251,191,36,0.25)" }}>
+            <i className="fa-solid fa-crown text-[10px]" /> Premium
+          </span>
         )}
       </div>
 
-      {/* Stats */}
-      {dashboard && (
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { icon: "fa-bolt",     label: "Summaries", value: dashboard.stats?.totalSummaries  ?? 0, color: "text-blue-300 bg-blue-400/15" },
-            { icon: "fa-comments", label: "Chats",     value: dashboard.stats?.totalChats      ?? 0, color: "text-violet-300 bg-violet-400/15" },
-            { icon: "fa-camera",   label: "OCR Scans", value: dashboard.stats?.totalOcrUploads ?? 0, color: "text-emerald-300 bg-emerald-400/15" },
-          ].map((stat) => (
-            <div key={stat.label} data-testid={`stat-${stat.label.toLowerCase()}`}
-              className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-3">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${stat.color}`}>
-                <i className={`fa-solid ${stat.icon} text-sm`} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{stat.label} total</p>
-              </div>
-            </div>
+      {/* ── AI Tutor quick start ── */}
+      <div className="rounded-2xl border border-border bg-card p-5">
+        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Quick start</p>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {QUICK_PROMPTS.map(p => (
+            <button key={p} onClick={() => setLocation("/teacher")}
+              className="text-xs px-3 py-2 rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border/60 transition-all duration-150">
+              {p}
+            </button>
           ))}
         </div>
-      )}
+        <button onClick={() => setLocation("/teacher")}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-primary/20 bg-primary/8 hover:bg-primary/12 transition-all duration-150 group">
+          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <i className="fa-solid fa-robot text-primary text-sm" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-semibold text-foreground">Open AI Tutor</p>
+            <p className="text-xs text-muted-foreground">Full-screen chat · streaming responses · multiple teaching styles</p>
+          </div>
+          <i className="fa-solid fa-arrow-right text-primary text-xs opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
+      </div>
 
-      {/* Feature Grid */}
+      {/* ── Feature grid ── */}
       <div>
-        <h2 className="text-base font-semibold text-foreground mb-4">What do you want to study?</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {featureCards.map((card) => (
-            <Link key={card.path} href={card.path}
-              data-testid={`card-feature-${card.label.toLowerCase().replace(/\s+/g, "-")}`}
-              className="bg-card border border-border rounded-2xl p-4 hover:shadow-md hover:-translate-y-0.5 transition-all group flex flex-col gap-3 no-underline">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${card.color}`}>
-                <i className={`fa-solid ${card.icon} text-sm`} />
+        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Study tools</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {FEATURES.map(f => (
+            <button key={f.path} onClick={() => setLocation(f.path)}
+              className={`p-4 rounded-2xl border ${f.border} bg-gradient-to-br ${f.grad} hover:scale-[1.02] active:scale-[0.98] transition-all duration-150 text-left`}>
+              <div className="w-8 h-8 rounded-xl bg-card border border-border flex items-center justify-center mb-3 shadow-sm">
+                <i className={`fa-solid ${f.icon} ${f.ic} text-xs`} />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">{card.label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{card.desc}</p>
-              </div>
-            </Link>
+              <p className="text-xs font-semibold text-foreground leading-tight">{f.label}</p>
+              <p className="text-[10px] text-muted-foreground mt-1 leading-snug">{f.desc}</p>
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Usage Meters */}
-      <div className="bg-card border border-border rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Today's Usage</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Resets at midnight UTC</p>
+      {/* ── Usage stats ── */}
+      {stats && (
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">Today's usage</p>
+          <div className="grid grid-cols-3 gap-6">
+            {[
+              { label: "AI Questions", used: stats.teacherQuestionsToday,  limit: stats.dailyLimitTeacher,   icon: "fa-robot",      ic: "text-blue-400"  },
+              { label: "Summaries",    used: stats.summariesToday,          limit: stats.dailyLimitSummaries, icon: "fa-file-lines", ic: "text-green-400" },
+              { label: "OCR Scans",    used: stats.ocrUploadsToday,         limit: stats.dailyLimitOcr,       icon: "fa-camera",     ic: "text-rose-400"  },
+            ].map(s => {
+              const pct = Math.min(100, (s.used / Math.max(1, s.limit)) * 100);
+              return (
+                <div key={s.label}>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <i className={`fa-solid ${s.icon} ${s.ic} text-xs`} />
+                    <span className="text-[11px] text-muted-foreground">{s.label}</span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl font-bold text-foreground">{s.used}</span>
+                    <span className="text-xs text-muted-foreground">/ {s.limit}</span>
+                  </div>
+                  <div className="mt-2 h-1 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${pct}%`, background: pct > 80 ? "rgb(239,68,68)" : "rgb(99,102,241)" }} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          {isPremium && (
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-300 px-2.5 py-1 rounded-full"
-              style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.25)" }}>
-              <i className="fa-solid fa-crown" />Premium
-            </span>
+          {!isPremium && (
+            <button onClick={() => setLocation("/premium")}
+              className="mt-5 w-full text-xs font-semibold text-amber-400 py-2 rounded-xl border transition-all hover:opacity-80"
+              style={{ background: "rgba(251,191,36,0.06)", borderColor: "rgba(251,191,36,0.2)" }}>
+              <i className="fa-solid fa-crown mr-1.5" />Upgrade to Premium for higher limits
+            </button>
           )}
-        </div>
-        {loading ? (
-          <div className="space-y-4">{[1,2,3,4].map(i => <div key={i} className="h-10 bg-muted rounded-xl animate-pulse" />)}</div>
-        ) : usage ? (
-          <div className="grid sm:grid-cols-2 gap-5">
-            <UsageBar label="Summaries"          icon="fa-bolt"            used={usage.usageStats.summariesToday}         limit={limitAsNumber(usage.limits.summaries)} isPremium={isPremium} />
-            <UsageBar label="Teacher Questions"  icon="fa-chalkboard-user" used={usage.usageStats.teacherQuestionsToday}  limit={limitAsNumber(usage.limits.teacher)}   isPremium={isPremium} />
-            <UsageBar label="Topic Explanations" icon="fa-lightbulb"       used={usage.usageStats.topicExplanationsToday} limit={limitAsNumber(usage.limits.topic)}     isPremium={isPremium} />
-            <UsageBar label="OCR Uploads"        icon="fa-camera"          used={usage.usageStats.ocrToday}               limit={limitAsNumber(usage.limits.ocr)}       isPremium={isPremium} />
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground text-center py-4">Could not load usage data.</p>
-        )}
-      </div>
-
-      {/* Recent Activity */}
-      {dashboard?.recentActivity && dashboard.recentActivity.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <h2 className="text-base font-semibold text-foreground mb-4">Recent Activity</h2>
-          <div className="space-y-3">
-            {dashboard.recentActivity.map((item, i) => (
-              <div key={i} data-testid={`activity-item-${i}`}
-                className="flex items-start gap-3 py-2 border-b border-border last:border-0">
-                <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <i className="fa-solid fa-bolt text-primary text-xs" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground truncate">{item.content}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{new Date(item.createdAt).toLocaleDateString()}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       )}
     </div>
