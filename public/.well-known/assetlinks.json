@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.qzz.studybud.twa",
+        "sha256_cert_fingerprints": ["64:46:DA:C2:5D:1E:22:07:73:7A:14:C2:E6:82:F9:9B:1C:4E:FC:2E:55:6A:C4:D8:F2:05:6C:89:76:6E:4C:0D"]
+      }
+    }]
