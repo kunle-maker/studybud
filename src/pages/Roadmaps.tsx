@@ -93,13 +93,44 @@ export default function Roadmaps() {
   const [expandedLesson,setExpandedLesson]= useState<string | null>(null);
   const [error,         setError]         = useState("");
 
-  useEffect(() => {
+  // Generate-with-AI state
+  const [showGenerate,  setShowGenerate]  = useState(false);
+  const [genTopic,      setGenTopic]      = useState("");
+  const [genSubject,    setGenSubject]    = useState("");
+  const [genDifficulty, setGenDifficulty] = useState<"beginner"|"intermediate"|"advanced">("beginner");
+  const [generating,    setGenerating]    = useState(false);
+  const [genError,      setGenError]      = useState("");
+
+  const loadRoadmaps = () => {
     setLoading(true);
     api.get("/roadmaps")
       .then(r => setRoadmaps(r.data.data || []))
       .catch(() => setError("Could not load roadmaps."))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadRoadmaps(); }, []);
+
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!genTopic.trim() || !genSubject.trim()) return;
+    setGenerating(true);
+    setGenError("");
+    try {
+      await api.post("/roadmaps/generate", {
+        topic: genTopic.trim(),
+        subject: genSubject.trim(),
+        difficulty: genDifficulty,
+      });
+      setShowGenerate(false);
+      setGenTopic(""); setGenSubject(""); setGenDifficulty("beginner"); setGenError("");
+      loadRoadmaps();
+    } catch (err: any) {
+      setGenError(err?.response?.data?.message || "Generation failed. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const openRoadmap = async (id: string) => {
     setDetailLoading(true);
@@ -307,12 +338,125 @@ export default function Roadmaps() {
   return (
     <div className="max-w-5xl space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Learning Roadmaps</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Structured learning paths with prerequisites, difficulty levels and progress tracking.
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center">
+              <i className="fa-solid fa-map text-primary text-sm" />
+            </span>
+            Learning Roadmaps
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1 ml-0.5">
+            AI-generated learning journeys for any topic — with prerequisites and progress tracking.
+          </p>
+        </div>
+        <button
+          onClick={() => { setShowGenerate(true); setGenError(""); }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition-all shadow-sm shadow-primary/30"
+        >
+          <i className="fa-solid fa-wand-magic-sparkles" />
+          Generate Roadmap
+        </button>
       </div>
+
+      {/* Generate modal */}
+      {showGenerate && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <i className="fa-solid fa-wand-magic-sparkles text-primary text-xs" />
+                </span>
+                <span className="font-semibold text-foreground text-sm">Generate Learning Roadmap</span>
+              </div>
+              <button
+                onClick={() => setShowGenerate(false)}
+                disabled={generating}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-40"
+              >
+                <i className="fa-solid fa-xmark text-xs" />
+              </button>
+            </div>
+
+            <form onSubmit={handleGenerate} className="p-6 space-y-4">
+              {genError && (
+                <div className="flex items-center gap-2 p-3 rounded-xl text-xs bg-destructive/10 border border-destructive/30 text-destructive">
+                  <i className="fa-solid fa-circle-exclamation flex-shrink-0" />{genError}
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Topic *</label>
+                <input
+                  value={genTopic}
+                  onChange={e => setGenTopic(e.target.value)}
+                  placeholder="e.g. Calculus, Machine Learning, Organic Chemistry"
+                  required
+                  disabled={generating}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all disabled:opacity-60"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Subject *</label>
+                <input
+                  value={genSubject}
+                  onChange={e => setGenSubject(e.target.value)}
+                  placeholder="e.g. Mathematics, Computer Science, Chemistry"
+                  required
+                  disabled={generating}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all disabled:opacity-60"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Difficulty</label>
+                <div className="flex gap-2">
+                  {(["beginner", "intermediate", "advanced"] as const).map(d => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setGenDifficulty(d)}
+                      disabled={generating}
+                      className={`flex-1 py-2 rounded-xl text-xs font-semibold border capitalize transition-all disabled:opacity-60 ${
+                        genDifficulty === d
+                          ? d === "beginner"     ? "bg-emerald-400/20 border-emerald-400/40 text-emerald-400"
+                          : d === "intermediate" ? "bg-amber-400/20 border-amber-400/40 text-amber-400"
+                                                 : "bg-red-400/20 border-red-400/40 text-red-400"
+                          : "border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >{d}</button>
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-[11px] text-muted-foreground">
+                <i className="fa-solid fa-circle-info mr-1" />
+                Free plan: up to 2 AI roadmaps per day. Premium is unlimited.
+              </p>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowGenerate(false)}
+                  disabled={generating}
+                  className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-60"
+                >Cancel</button>
+                <button
+                  type="submit"
+                  disabled={generating || !genTopic.trim() || !genSubject.trim()}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white bg-primary hover:bg-primary/90 transition-all disabled:opacity-50"
+                >
+                  {generating
+                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Generating…</>
+                    : <><i className="fa-solid fa-wand-magic-sparkles text-xs" />Generate</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center gap-2 p-3 rounded-xl text-sm bg-destructive/10 border border-destructive/30 text-destructive">

@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Trophy, PartyPopper, ThumbsUp, BookOpen, Dumbbell, ListChecks, PenSquare, Users2 } from "lucide-react";
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -111,7 +112,13 @@ const GRADE_DOT: Record<GradeItem["status"], string> = {
   incorrect: "bg-red-400",
 };
 
-const SCORE_EMOJI = (pct: number) => pct >= 90 ? "🏆" : pct >= 75 ? "🎉" : pct >= 50 ? "👍" : pct >= 30 ? "📚" : "💪";
+function ScoreIcon({ pct, className = "w-5 h-5" }: { pct: number; className?: string }) {
+  if (pct >= 90) return <Trophy className={className} />;
+  if (pct >= 75) return <PartyPopper className={className} />;
+  if (pct >= 50) return <ThumbsUp className={className} />;
+  if (pct >= 30) return <BookOpen className={className} />;
+  return <Dumbbell className={className} />;
+}
 
 const ACTION_ICONS: Record<string, string> = {
   created:           "fa-plus",
@@ -200,6 +207,8 @@ export default function Assignments() {
   const [activity, setActivity]     = useState<ActivityItem[]>([]);
   const [shareCopied, setShareCopied] = useState(false);
   const [rightOpen, setRightOpen]   = useState(true);
+  // Mobile: which single panel is visible (the 3-panel layout collapses to one at a time)
+  const [mobilePanel, setMobilePanel] = useState<"nav" | "question" | "collab">("question");
 
   // Debounce timer ref for auto-save
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -225,7 +234,7 @@ export default function Assignments() {
   useEffect(() => {
     if (!params?.id || deepLinked) return;
     setDeepLinked(true);
-    openWorkspace(params.id); // eslint-disable-line react-hooks/exhaustive-deps
+    openWorkspace(params.id, true); // eslint-disable-line react-hooks/exhaustive-deps
   }, [params?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Sync URL when workspace changes ────────────────────────────────────────
@@ -235,16 +244,18 @@ export default function Assignments() {
       if (!window.location.pathname.endsWith(workspace._id)) {
         setLocation(target, { replace: true });
       }
-    } else if (view === "list") {
+    } else if (view === "list" && !params?.id) {
+      // Only redirect to /assignments if we're NOT mid-way through a deep-link open.
+      // If params.id is present we're still loading the workspace from the URL param.
       if (window.location.pathname.startsWith("/assignment/")) {
         setLocation("/assignments", { replace: true });
       }
     }
-  }, [view, workspace?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [view, workspace?._id, params?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Open workspace ─────────────────────────────────────────────────────────
 
-  const openWorkspace = async (id: string) => {
+  const openWorkspace = async (id: string, fromDeepLink = false) => {
     setOpeningId(id);
     setListError("");
     try {
@@ -275,6 +286,11 @@ export default function Assignments() {
       setView("workspace");
     } catch {
       setListError("Could not load assignment.");
+      // If we came here via a deep-link URL and loading failed, redirect back to
+      // the list so the user isn't stuck at /assignment/:id with no workspace open.
+      if (fromDeepLink) {
+        setLocation("/assignments", { replace: true });
+      }
     } finally {
       setOpeningId(null);
     }
@@ -668,10 +684,12 @@ export default function Assignments() {
     const collabs = workspace.collaborators || [];
 
     return (
-      <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -mt-4">
+      <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 pb-14 sm:pb-0">
 
         {/* ── LEFT PANEL: Question sidebar ─────────────────────────────── */}
-        <aside className="w-56 flex-shrink-0 bg-card border-r border-border flex flex-col overflow-hidden">
+        <aside className={`flex-shrink-0 bg-card border-r border-border flex-col overflow-hidden w-full sm:w-56 ${
+          mobilePanel === "nav" ? "flex" : "hidden sm:flex"
+        }`}>
           {/* Back link */}
           <div className="px-3 pt-3 pb-2 border-b border-border">
             <button
@@ -722,7 +740,7 @@ export default function Assignments() {
                 return (
                   <button
                     key={q._id}
-                    onClick={() => setCurrentQ(i)}
+                    onClick={() => { setCurrentQ(i); setMobilePanel("question"); }}
                     className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-all ${
                       isActive
                         ? "bg-primary/15 border border-primary/30 text-foreground"
@@ -745,8 +763,8 @@ export default function Assignments() {
           {/* Submit button */}
           <div className="p-3 border-t border-border">
             {grades ? (
-              <div className={`text-center py-2 rounded-xl text-xs font-bold border ${GRADE_STATUS_COLORS[pct >= 75 ? "correct" : pct >= 40 ? "partial" : "incorrect"]}`}>
-                {SCORE_EMOJI(pct)} {grades.totalScore}/{grades.maxScore} ({pct}%)
+              <div className={`flex items-center justify-center gap-1.5 text-center py-2 rounded-xl text-xs font-bold border ${GRADE_STATUS_COLORS[pct >= 75 ? "correct" : pct >= 40 ? "partial" : "incorrect"]}`}>
+                <ScoreIcon pct={pct} className="w-3.5 h-3.5" /> {grades.totalScore}/{grades.maxScore} ({pct}%)
               </div>
             ) : (
               <button
@@ -761,7 +779,9 @@ export default function Assignments() {
         </aside>
 
         {/* ── MAIN PANEL ────────────────────────────────────────────────── */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-background">
+        <main className={`flex-1 flex-col overflow-hidden bg-background ${
+          mobilePanel === "question" ? "flex" : "hidden sm:flex"
+        }`}>
           {/* Error bar */}
           {wsError && (
             <div className="mx-4 mt-3 flex items-center gap-2 p-3 rounded-xl text-sm bg-destructive/15 border border-destructive/30 text-destructive flex-shrink-0">
@@ -777,7 +797,9 @@ export default function Assignments() {
               pct >= 40 ? "bg-amber-400/10 border-amber-400/25" :
                           "bg-red-400/10 border-red-400/25"
             }`}>
-              <span className="text-2xl">{SCORE_EMOJI(pct)}</span>
+              <span className={`flex-shrink-0 ${pct >= 75 ? "text-emerald-400" : pct >= 40 ? "text-amber-400" : "text-red-400"}`}>
+                <ScoreIcon pct={pct} className="w-7 h-7" />
+              </span>
               <div>
                 <p className="text-sm font-bold text-foreground">
                   {grades.totalScore} / {grades.maxScore} marks &nbsp;
@@ -947,9 +969,11 @@ export default function Assignments() {
         </main>
 
         {/* ── RIGHT PANEL: Collaboration ───────────────────────────────── */}
-        <aside className={`flex-shrink-0 border-l border-border bg-card flex flex-col overflow-hidden transition-all duration-300 ${rightOpen ? "w-60" : "w-10"}`}>
-          {/* Toggle */}
-          <div className={`flex items-center border-b border-border flex-shrink-0 ${rightOpen ? "px-3 py-2.5 justify-between" : "justify-center py-2.5"}`}>
+        <aside className={`flex-shrink-0 border-l border-border bg-card flex-col overflow-hidden transition-all duration-300 w-full ${
+          rightOpen ? "sm:w-60" : "sm:w-10"
+        } ${mobilePanel === "collab" ? "flex" : "hidden sm:flex"}`}>
+          {/* Toggle (desktop only — mobile uses the tab bar) */}
+          <div className={`hidden sm:flex items-center border-b border-border flex-shrink-0 ${rightOpen ? "px-3 py-2.5 justify-between" : "justify-center py-2.5"}`}>
             {rightOpen && <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Collaboration</p>}
             <button
               onClick={() => setRightOpen(p => !p)}
@@ -958,8 +982,12 @@ export default function Assignments() {
               <i className={`fa-solid ${rightOpen ? "fa-chevron-right" : "fa-chevron-left"} text-[10px]`} />
             </button>
           </div>
+          {/* Mobile header */}
+          <div className="sm:hidden flex items-center justify-between px-3 py-2.5 border-b border-border flex-shrink-0">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Collaboration</p>
+          </div>
 
-          {rightOpen && (
+          {(rightOpen || mobilePanel === "collab") && (
             <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
 
               {/* Share */}
@@ -1040,6 +1068,37 @@ export default function Assignments() {
             </div>
           )}
         </aside>
+
+        {/* ── MOBILE TAB BAR ────────────────────────────────────────────── */}
+        <nav className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-card border-t border-border flex items-stretch">
+          <button
+            onClick={() => setMobilePanel("nav")}
+            className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition-colors ${
+              mobilePanel === "nav" ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <ListChecks className="w-4 h-4" />
+            Questions
+          </button>
+          <button
+            onClick={() => setMobilePanel("question")}
+            className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition-colors ${
+              mobilePanel === "question" ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <PenSquare className="w-4 h-4" />
+            Answer
+          </button>
+          <button
+            onClick={() => setMobilePanel("collab")}
+            className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition-colors ${
+              mobilePanel === "collab" ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <Users2 className="w-4 h-4" />
+            Team
+          </button>
+        </nav>
       </div>
     );
   }

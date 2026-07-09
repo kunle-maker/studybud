@@ -345,8 +345,6 @@ export default function Flashcards() {
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-primary mb-0.5">Q</p>
                   <p className="text-sm text-foreground leading-snug">{card.front}</p>
-                  <p className="text-xs font-semibold text-muted-foreground mt-2 mb-0.5">A</p>
-                  <p className="text-sm text-muted-foreground leading-snug">{card.back}</p>
                 </div>
               </div>
             </div>
