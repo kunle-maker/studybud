@@ -210,6 +210,18 @@ export default function Assignments() {
   // Mobile: which single panel is visible (the 3-panel layout collapses to one at a time)
   const [mobilePanel, setMobilePanel] = useState<"nav" | "question" | "collab">("question");
 
+  // Assignment settings/management (creator only)
+  const [showSettings, setShowSettings]   = useState(false);
+  const [settingsTitle, setSettingsTitle] = useState("");
+  const [settingsDesc, setSettingsDesc]   = useState("");
+  const [settingsDue, setSettingsDue]     = useState("");
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [regenerating, setRegenerating]   = useState(false);
+  const [deletingAssignment, setDeletingAssignment] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [settingsError, setSettingsError] = useState("");
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+
   // Debounce timer ref for auto-save
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -418,6 +430,101 @@ export default function Assignments() {
     setWorkspace(null);
     setGrades(null);
     loadList();
+  };
+
+  // ── Open settings dialog ───────────────────────────────────────────────────
+
+  const openSettings = () => {
+    if (!workspace) return;
+    setSettingsTitle(workspace.title);
+    setSettingsDesc(workspace.description || "");
+    setSettingsDue(workspace.dueDate ? new Date(workspace.dueDate).toISOString().slice(0, 10) : "");
+    setSettingsError("");
+    setConfirmDelete(false);
+    setShowSettings(true);
+  };
+
+  // ── Save settings (title, description, due date) ───────────────────────────
+
+  const saveSettings = async () => {
+    if (!workspace || !settingsTitle.trim()) return;
+    setSavingSettings(true);
+    setSettingsError("");
+    try {
+      const { data } = await api.patch(`/assignments/${workspace._id}`, {
+        title:       settingsTitle.trim(),
+        description: settingsDesc.trim(),
+        dueDate:     settingsDue || null,
+      });
+      setWorkspace(prev => prev ? {
+        ...prev,
+        title:       data.data?.title       ?? settingsTitle.trim(),
+        description: data.data?.description ?? settingsDesc.trim(),
+        dueDate:     data.data?.dueDate     ?? (settingsDue || undefined),
+      } : prev);
+      setShowSettings(false);
+      loadList();
+    } catch (err: any) {
+      setSettingsError(err?.response?.data?.message || "Failed to save changes.");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  // ── Regenerate questions ───────────────────────────────────────────────────
+
+  const handleRegenerateQuestions = async () => {
+    if (!workspace) return;
+    setRegenerating(true);
+    setSettingsError("");
+    try {
+      const { data } = await api.post(`/assignments/${workspace._id}/regenerate-questions`);
+      setWorkspace(prev => prev ? { ...prev, questions: data.data?.questions ?? prev.questions } : prev);
+      setAnswers({});
+      setSavedQIds(new Set());
+      setGrades(null);
+      setCurrentQ(0);
+      setShowSettings(false);
+    } catch (err: any) {
+      setSettingsError(err?.response?.data?.message || "Failed to regenerate questions.");
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  // ── Delete assignment ──────────────────────────────────────────────────────
+
+  const handleDeleteAssignment = async () => {
+    if (!workspace) return;
+    setDeletingAssignment(true);
+    setSettingsError("");
+    try {
+      await api.delete(`/assignments/${workspace._id}`);
+      setShowSettings(false);
+      backToList();
+    } catch (err: any) {
+      setSettingsError(err?.response?.data?.message || "Failed to delete assignment.");
+      setDeletingAssignment(false);
+    }
+  };
+
+  // ── Remove collaborator ────────────────────────────────────────────────────
+
+  const handleRemoveMember = async (userId: string) => {
+    if (!workspace) return;
+    setRemovingMemberId(userId);
+    setSettingsError("");
+    try {
+      await api.delete(`/assignments/${workspace._id}/collaborators/${userId}`);
+      setWorkspace(prev => prev
+        ? { ...prev, collaborators: prev.collaborators.filter(c => c.user._id !== userId) }
+        : prev
+      );
+    } catch (err: any) {
+      setSettingsError(err?.response?.data?.message || "Failed to remove member.");
+    } finally {
+      setRemovingMemberId(null);
+    }
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -684,7 +791,7 @@ export default function Assignments() {
     const collabs = workspace.collaborators || [];
 
     return (
-      <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 pb-14 sm:pb-0">
+      <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 pb-20 sm:pb-0">
 
         {/* ── LEFT PANEL: Question sidebar ─────────────────────────────── */}
         <aside className={`flex-shrink-0 bg-card border-r border-border flex-col overflow-hidden w-full sm:w-56 ${
@@ -702,7 +809,18 @@ export default function Assignments() {
 
           {/* Assignment title */}
           <div className="px-3 py-3 border-b border-border">
-            <p className="text-xs font-bold text-foreground line-clamp-2 leading-snug">{workspace.title}</p>
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-xs font-bold text-foreground line-clamp-2 leading-snug flex-1">{workspace.title}</p>
+              {isCreator && (
+                <button
+                  onClick={openSettings}
+                  title="Assignment Settings"
+                  className="w-6 h-6 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex-shrink-0"
+                >
+                  <i className="fa-solid fa-gear text-[10px]" />
+                </button>
+              )}
+            </div>
             <span className={`mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold border ${STATUS_COLORS[workspace.status]}`}>
               <i className={`fa-solid ${STATUS_ICONS[workspace.status]} text-[7px]`} />
               {STATUS_LABELS[workspace.status]}
@@ -1030,6 +1148,19 @@ export default function Assignments() {
                         <p className="text-xs font-semibold text-foreground truncate">{c.user.name}</p>
                       </div>
                       <span className="text-[9px] text-muted-foreground flex-shrink-0 capitalize">{c.role}</span>
+                      {isCreator && (
+                        <button
+                          onClick={() => handleRemoveMember(c.user._id)}
+                          disabled={removingMemberId === c.user._id}
+                          title="Remove member"
+                          className="w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-all flex-shrink-0 disabled:opacity-40"
+                        >
+                          {removingMemberId === c.user._id
+                            ? <span className="w-2.5 h-2.5 border border-current/30 border-t-current rounded-full animate-spin" />
+                            : <i className="fa-solid fa-user-minus text-[8px]" />
+                          }
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1069,12 +1200,146 @@ export default function Assignments() {
           )}
         </aside>
 
-        {/* ── MOBILE TAB BAR ────────────────────────────────────────────── */}
-        <nav className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-card border-t border-border flex items-stretch">
+        {/* ── SETTINGS DIALOG (creator only) ── */}
+        {showSettings && isCreator && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+            <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card">
+                <div className="flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
+                    <i className="fa-solid fa-gear text-primary text-xs" />
+                  </span>
+                  <span className="font-semibold text-foreground text-sm">Assignment Settings</span>
+                </div>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  disabled={savingSettings || regenerating || deletingAssignment}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all disabled:opacity-40"
+                >
+                  <i className="fa-solid fa-xmark text-xs" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-5">
+                {settingsError && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl text-xs bg-destructive/10 border border-destructive/30 text-destructive">
+                    <i className="fa-solid fa-circle-exclamation flex-shrink-0" />{settingsError}
+                  </div>
+                )}
+
+                {/* Title */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Title *</label>
+                  <input
+                    value={settingsTitle}
+                    onChange={e => setSettingsTitle(e.target.value)}
+                    disabled={savingSettings}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all disabled:opacity-60"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</label>
+                  <textarea
+                    value={settingsDesc}
+                    onChange={e => setSettingsDesc(e.target.value)}
+                    rows={3}
+                    disabled={savingSettings}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all resize-none disabled:opacity-60"
+                  />
+                </div>
+
+                {/* Due date */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Due Date</label>
+                  <input
+                    type="date"
+                    value={settingsDue}
+                    onChange={e => setSettingsDue(e.target.value)}
+                    disabled={savingSettings}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all disabled:opacity-60"
+                  />
+                </div>
+
+                {/* Save button */}
+                <button
+                  onClick={saveSettings}
+                  disabled={savingSettings || !settingsTitle.trim()}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition-all disabled:opacity-50"
+                >
+                  {savingSettings
+                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving…</>
+                    : <><i className="fa-solid fa-floppy-disk text-xs" />Save Changes</>}
+                </button>
+
+                <div className="border-t border-border pt-4 space-y-3">
+                  {/* Regenerate questions */}
+                  <div className="p-3.5 rounded-xl border border-border space-y-2.5">
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Regenerate Questions</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Create a new set of AI-generated questions. All existing answers and grades will be cleared.</p>
+                    </div>
+                    <button
+                      onClick={handleRegenerateQuestions}
+                      disabled={regenerating || savingSettings}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border border-amber-400/30 text-amber-400 bg-amber-400/5 hover:bg-amber-400/10 transition-all disabled:opacity-50"
+                    >
+                      {regenerating
+                        ? <><span className="w-3 h-3 border border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />Regenerating…</>
+                        : <><i className="fa-solid fa-rotate-right text-[10px]" />Regenerate Questions</>}
+                    </button>
+                  </div>
+
+                  {/* Delete */}
+                  <div className="p-3.5 rounded-xl border border-destructive/20 bg-destructive/5 space-y-2.5">
+                    <div>
+                      <p className="text-xs font-semibold text-destructive">Delete Assignment</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Permanently removes this assignment and all submissions. This action cannot be undone.</p>
+                    </div>
+                    {!confirmDelete ? (
+                      <button
+                        onClick={() => setConfirmDelete(true)}
+                        disabled={deletingAssignment || savingSettings}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border border-destructive/30 text-destructive bg-destructive/10 hover:bg-destructive/20 transition-all disabled:opacity-50"
+                      >
+                        <i className="fa-solid fa-trash text-[10px]" />Delete Assignment
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-[11px] font-semibold text-destructive">Are you sure? This is irreversible.</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setConfirmDelete(false)}
+                            disabled={deletingAssignment}
+                            className="flex-1 py-1.5 rounded-xl text-xs font-semibold border border-border text-muted-foreground hover:bg-muted transition-all"
+                          >Cancel</button>
+                          <button
+                            onClick={handleDeleteAssignment}
+                            disabled={deletingAssignment}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-semibold bg-destructive text-white hover:bg-destructive/90 transition-all disabled:opacity-50"
+                          >
+                            {deletingAssignment
+                              ? <><span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />Deleting…</>
+                              : <><i className="fa-solid fa-trash text-[10px]" />Yes, Delete</>}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── MOBILE TAB BAR ── solid (non-glass) so scrolled content never bleeds through ── */}
+        <nav className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-sidebar border-t border-sidebar-border shadow-2xl flex items-stretch">
           <button
             onClick={() => setMobilePanel("nav")}
             className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition-colors ${
-              mobilePanel === "nav" ? "text-primary" : "text-muted-foreground"
+              mobilePanel === "nav" ? "text-primary" : "text-sidebar-foreground/60"
             }`}
           >
             <ListChecks className="w-4 h-4" />
@@ -1083,7 +1348,7 @@ export default function Assignments() {
           <button
             onClick={() => setMobilePanel("question")}
             className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition-colors ${
-              mobilePanel === "question" ? "text-primary" : "text-muted-foreground"
+              mobilePanel === "question" ? "text-primary" : "text-sidebar-foreground/60"
             }`}
           >
             <PenSquare className="w-4 h-4" />
@@ -1092,7 +1357,7 @@ export default function Assignments() {
           <button
             onClick={() => setMobilePanel("collab")}
             className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition-colors ${
-              mobilePanel === "collab" ? "text-primary" : "text-muted-foreground"
+              mobilePanel === "collab" ? "text-primary" : "text-sidebar-foreground/60"
             }`}
           >
             <Users2 className="w-4 h-4" />

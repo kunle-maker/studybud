@@ -66,7 +66,7 @@ export default function Subjects() {
   const [histLoading,  setHistLoading]  = useState(false);
   const [deleting,     setDeleting]     = useState<string | null>(null);
   const [branchSearch, setBranchSearch] = useState("");
-  const [sidebarOpen,  setSidebarOpen]  = useState(false);
+  const [historyOpen,  setHistoryOpen]  = useState(false);
   const [initialised,  setInitialised]  = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -133,7 +133,7 @@ export default function Subjects() {
       setChatId(chat._id); setChatTitle(chat.title || c.title);
       setMessages(chat.messages.map((m: any) => ({ role: m.role, content: m.content })));
       setError(""); setLimitReached(false); setInput("");
-      setView("chat"); setSidebarOpen(false);
+      setView("chat"); setHistoryOpen(false);
     } catch { setError("Failed to load chat."); }
   };
 
@@ -350,18 +350,29 @@ export default function Subjects() {
   const lastUserMessage = [...messages].reverse().find(m => m.role === "user")?.content || "";
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] sm:h-[calc(100vh-8rem)] max-w-6xl gap-0 overflow-hidden rounded-2xl border border-border bg-card">
+    <div className="relative flex h-[calc(100vh-7rem)] sm:h-[calc(100vh-8rem)] max-w-6xl gap-0 overflow-hidden rounded-2xl border border-border bg-card">
 
-      {/* Sidebar */}
-      <div className={`flex-shrink-0 border-r border-border bg-background flex flex-col transition-all duration-200 ${
-        sidebarOpen ? "w-56 sm:w-64" : "w-0 overflow-hidden"
-      } md:w-52 md:overflow-visible`}>
+      {/* History — slide-over panel (never pushes the chat layout) */}
+      {historyOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40" onClick={() => setHistoryOpen(false)} />
+      )}
+      <div className={`
+        fixed inset-y-0 left-0 z-50 flex flex-col bg-card border-r border-border shadow-2xl
+        w-[85vw] max-w-72 transition-transform duration-200 ease-out
+        ${historyOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
         <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">History</span>
-          <button onClick={loadHistory}
-            className="w-6 h-6 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
-            <i className="fa-solid fa-rotate text-[10px]" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={loadHistory}
+              className="w-6 h-6 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+              <i className="fa-solid fa-rotate text-[10px]" />
+            </button>
+            <button onClick={() => setHistoryOpen(false)}
+              className="w-6 h-6 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+              <i className="fa-solid fa-xmark text-xs" />
+            </button>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {histLoading ? (
@@ -395,9 +406,10 @@ export default function Subjects() {
         {/* Header */}
         <div className="flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-3 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <button onClick={() => { loadHistory(); setSidebarOpen(p => !p); }}
-              className="md:hidden w-7 h-7 sm:w-8 sm:h-8 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex-shrink-0">
-              <i className="fa-solid fa-sidebar text-xs" />
+            <button onClick={() => { loadHistory(); setHistoryOpen(true); }}
+              title="Conversation history"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex-shrink-0">
+              <i className="fa-solid fa-clock-rotate-left text-xs" />
             </button>
             <button onClick={() => setView("branches")}
               className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex-shrink-0">

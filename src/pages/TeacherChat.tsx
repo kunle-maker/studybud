@@ -104,9 +104,10 @@ export default function TeacherChat() {
   const params    = useParams<{ id?: string }>();
   const [, setLocation] = useLocation();
 
-  /* Sidebar */
-  const [sidebarOpen,    setSidebarOpen]    = useState(true);
+  /* History panel (slide-over, closed by default — not a permanent sidebar) */
+  const [historyOpen,    setHistoryOpen]    = useState(false);
   const [sidebarSearch,  setSidebarSearch]  = useState("");
+  const [styleMenuOpen,  setStyleMenuOpen]  = useState(false);
   const [chats,          setChats]          = useState<ChatSummary[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [deleting,       setDeleting]       = useState<string | null>(null);
@@ -153,7 +154,7 @@ export default function TeacherChat() {
         setChatTitle(chat.title || "Chat");
         setStyle(chat.teachingStyle || "default");
         setError("");
-        if (window.innerWidth < 768) setSidebarOpen(false);
+        setHistoryOpen(false);
       })
       .catch(() => setError("Could not load that chat."));
   }, [params?.id, initialised]);
@@ -195,7 +196,7 @@ export default function TeacherChat() {
     setStyle("default");
     setInitialised(true);
     setLocation("/teacher", { replace: true });
-    setSidebarOpen(window.innerWidth >= 768);
+    setHistoryOpen(false);
   };
 
   const openExistingChat = async (c: ChatSummary) => {
@@ -207,7 +208,7 @@ export default function TeacherChat() {
       setChatTitle(chat.title || c.title);
       setStyle(chat.teachingStyle || "default");
       setError("");
-      if (window.innerWidth < 768) setSidebarOpen(false);
+      setHistoryOpen(false);
     } catch { setError("Failed to load chat."); }
   };
 
@@ -380,26 +381,24 @@ export default function TeacherChat() {
   return (
     <div className="flex h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] overflow-hidden bg-background">
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/40 z-20 md:hidden" onClick={() => setSidebarOpen(false)} />
+      {/* ── Conversation history — slide-over panel (never pushes layout) ── */}
+      {historyOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40" onClick={() => setHistoryOpen(false)} />
       )}
-
-      {/* ── Sidebar ────────────────────────────────────────────────── */}
       <aside className={`
-        flex-shrink-0 flex flex-col bg-card border-r border-border transition-all duration-200 z-30
-        ${sidebarOpen ? "w-64 sm:w-72" : "w-0 overflow-hidden"}
-        fixed md:relative h-full md:h-auto
+        fixed inset-y-0 left-0 z-50 flex flex-col bg-card border-r border-border shadow-2xl
+        w-[85vw] max-w-80 transition-transform duration-200 ease-out
+        ${historyOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
-        <div className="flex flex-col h-full w-64 sm:w-72">
+        <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-border flex-shrink-0">
             <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <i className="fa-solid fa-chalkboard-user text-primary text-sm" />
+              <i className="fa-solid fa-clock-rotate-left text-primary text-sm" />
             </div>
-            <span className="text-sm font-semibold text-foreground flex-1 truncate">TeachBuddy</span>
-            <button onClick={() => setSidebarOpen(false)}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all md:hidden">
+            <span className="text-sm font-semibold text-foreground flex-1 truncate">Conversations</span>
+            <button onClick={() => setHistoryOpen(false)}
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
               <i className="fa-solid fa-xmark text-sm" />
             </button>
           </div>
@@ -467,33 +466,6 @@ export default function TeacherChat() {
               </div>
             ))}
           </div>
-
-          {/* Teaching style */}
-          <div className="border-t border-border px-4 py-4 flex-shrink-0">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-2.5">Teaching Style</p>
-            <div className="grid grid-cols-3 gap-2">
-              {STYLES.map(s => {
-                const locked = s.premiumOnly && !isPremium;
-                const active = style === s.key;
-                return (
-                  <button key={s.key} onClick={() => !locked && setStyle(s.key)} disabled={locked}
-                    title={locked ? `${s.label} — Premium only` : `${s.label} — ${s.desc}`}
-                    className={`relative flex flex-col items-center gap-1 py-2 px-1 rounded-xl border transition-all ${
-                      active ? `${s.bg} border-primary/30`
-                        : locked ? "opacity-30 cursor-not-allowed bg-muted border-transparent"
-                          : "bg-muted/50 border-transparent hover:border-border"
-                    }`}>
-                    <i className={`fa-solid ${s.faIcon} ${active ? s.color : "text-muted-foreground"} text-xs`} />
-                    <span className={`text-[9px] font-semibold leading-none ${active ? s.color : "text-muted-foreground"}`}>{s.label}</span>
-                    {locked && <i className="fa-solid fa-lock text-[7px] text-muted-foreground absolute top-1 right-1" />}
-                  </button>
-                );
-              })}
-            </div>
-            {!isPremium && (
-              <a href="/premium" className="text-[10px] text-primary hover:underline mt-3 block">Upgrade for all styles →</a>
-            )}
-          </div>
         </div>
       </aside>
 
@@ -502,9 +474,11 @@ export default function TeacherChat() {
 
         {/* Top bar */}
         <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border flex-shrink-0 bg-card">
-          <button onClick={() => setSidebarOpen(v => !v)}
-            className="w-8 h-8 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex-shrink-0">
-            <i className="fa-solid fa-sidebar text-sm" />
+          <button onClick={() => setHistoryOpen(true)}
+            title="Conversation history"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 h-8 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-all flex-shrink-0">
+            <i className="fa-solid fa-clock-rotate-left text-xs" />
+            <span className="hidden sm:inline">History</span>
           </button>
 
           <div className="flex-1 min-w-0">
@@ -525,9 +499,44 @@ export default function TeacherChat() {
             )}
           </div>
 
-          <div className={`hidden sm:flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg ${styleInfo.bg} flex-shrink-0`}>
-            <i className={`fa-solid ${styleInfo.faIcon} ${styleInfo.color} text-xs`} />
-            <span className={`text-xs font-medium ${styleInfo.color}`}>{styleInfo.label}</span>
+          <div className="relative flex-shrink-0">
+            <button onClick={() => setStyleMenuOpen(v => !v)}
+              className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg ${styleInfo.bg} hover:opacity-80 transition-opacity`}>
+              <i className={`fa-solid ${styleInfo.faIcon} ${styleInfo.color} text-xs`} />
+              <span className={`hidden sm:inline text-xs font-medium ${styleInfo.color}`}>{styleInfo.label}</span>
+              <i className={`fa-solid fa-chevron-down text-[8px] ${styleInfo.color}`} />
+            </button>
+
+            {styleMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setStyleMenuOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 z-50 w-64 bg-card border border-border rounded-2xl shadow-xl p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-2.5 px-1">Teaching Style</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {STYLES.map(s => {
+                      const locked = s.premiumOnly && !isPremium;
+                      const active = style === s.key;
+                      return (
+                        <button key={s.key} onClick={() => { if (!locked) { setStyle(s.key); setStyleMenuOpen(false); } }} disabled={locked}
+                          title={locked ? `${s.label} — Premium only` : `${s.label} — ${s.desc}`}
+                          className={`relative flex flex-col items-center gap-1 py-2 px-1 rounded-xl border transition-all ${
+                            active ? `${s.bg} border-primary/30`
+                              : locked ? "opacity-30 cursor-not-allowed bg-muted border-transparent"
+                                : "bg-muted/50 border-transparent hover:border-border"
+                          }`}>
+                          <i className={`fa-solid ${s.faIcon} ${active ? s.color : "text-muted-foreground"} text-xs`} />
+                          <span className={`text-[9px] font-semibold leading-none ${active ? s.color : "text-muted-foreground"}`}>{s.label}</span>
+                          {locked && <i className="fa-solid fa-lock text-[7px] text-muted-foreground absolute top-1 right-1" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {!isPremium && (
+                    <a href="/premium" className="text-[10px] text-primary hover:underline mt-3 block px-1">Upgrade for all styles →</a>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {messages.length > 0 && (
