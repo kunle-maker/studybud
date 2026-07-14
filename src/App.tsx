@@ -24,6 +24,8 @@ import Admin from "@/pages/Admin";
 import AdminLogin from "@/pages/AdminLogin";
 import Subjects from "@/pages/Subjects";
 import Roadmaps from "@/pages/Roadmaps";
+import RoadmapChapter from "@/pages/RoadmapChapter";
+import RoadmapExam from "@/pages/RoadmapExam";
 import Assignments from "@/pages/Assignments";
 import AssignmentJoin from "@/pages/AssignmentJoin";
 import Notifications from "@/pages/Notifications";
@@ -97,6 +99,9 @@ function Router() {
       <Route path="/subjects"               component={() => <ProtectedRoute component={Subjects} />} />
       <Route path="/chat/subject/:id"       component={() => <ProtectedRoute component={Subjects} />} />
       <Route path="/roadmaps"               component={() => <ProtectedRoute component={Roadmaps} />} />
+      <Route path="/roadmaps/:roadmapId"   component={() => <ProtectedRoute component={Roadmaps} />} />
+      <Route path="/roadmaps/:roadmapId/chapter/:lessonId" component={() => <ProtectedRoute component={RoadmapChapter} />} />
+      <Route path="/roadmaps/:roadmapId/exam"              component={() => <ProtectedRoute component={RoadmapExam} />} />
       <Route path="/assignments"            component={() => <ProtectedRoute component={Assignments} />} />
       <Route path="/assignment/:id"         component={() => <ProtectedRoute component={Assignments} />} />
       <Route path="/assignments/join/:token" component={AssignmentJoin} />
